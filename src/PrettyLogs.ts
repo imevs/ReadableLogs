@@ -127,8 +127,7 @@ export function showLog(data: { args: DataObject; }[]) {
             i === 0 ? undefined : (data[i - 1]!).args,
             { highlightKeys: true, showDifferences: true },
         );
-        console.log(result);
-        console.warn(...formatForLoggingInBrowser("Message: ", result));
+        console.info(...formatForLoggingInBrowser("Message: ", result));
     });
 }
 

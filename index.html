@@ -1,5 +1,19 @@
 <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
 <script src="build.js"></script>
 <script>
-    require(['demo']);
+    require(['testData', "PrettyLogs"], (testData, PrettyLogs) => {
+        document.querySelector("#demo_input").textContent = JSON.stringify(testData.logs, null, ' ');
+        PrettyLogs.showLog(testData.logs);
+
+        document.querySelector("#run").addEventListener("click", () => {
+            console.clear();
+            PrettyLogs.showLog(JSON.parse(document.querySelector("#demo_input").value));
+        });
+    });
 </script>
+<h1>Welcome to ReadableLogs demo page!</h1>
+<h2>Open dev console in your browser to view the output for demo</h2>
+
+<textarea id="demo_input" style="width: 100%; height: 300px;">
+</textarea>
+<button id="run">Run!</button>
