@@ -1,6 +1,6 @@
 <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
 <script>
-    require(['lib/testData', "lib/PrettyLogs", "lib/htmlFormatterUtils"], (testData, PrettyLogs, htmlFormatterUtils) => {
+    require(['scripts/testData', "scripts/PrettyLogs", "scripts/htmlFormatterUtils"], (testData, PrettyLogs, htmlFormatterUtils) => {
         function executeFormatter(data) {
             const res = PrettyLogs.formatLogs(data);
             PrettyLogs.showLogsInBrowserConsole(res);
