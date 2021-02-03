@@ -35,6 +35,7 @@ function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
 type Options = {
     highlightKeys: boolean;
     showDifferences: boolean;
+    formatMultiline: boolean;
 }
 
 function highlightPartsOfMessage<T extends DataObject>(
@@ -43,7 +44,13 @@ function highlightPartsOfMessage<T extends DataObject>(
     prevMessage: undefined | T,
     options: Options,
 ): LOG {
-    let res: LOG = [{ text: JSON.stringify(message), color: "", path: "" }];
+    let res: LOG = [{
+        text: options.formatMultiline ?
+            JSON.stringify(message, null, ' ') :
+            JSON.stringify(message),
+        color: "",
+        path: "",
+    }];
     keys.forEach(key => {
         const path = `/${key}`;
         if (options.highlightKeys) {
@@ -118,14 +125,14 @@ function formatForLoggingInBrowser(prefix: string, result: LOG) {
         ...(result.map(item => `color: ${item.color};`))];
 }
 
-export function showLog(data: { args: DataObject; }[]) {
+export function showLog(data: DataObject[]) {
     data.forEach((event, i) => {
-        const message = event.args;
+        const message = event;
         const result = highlightPartsOfMessage(
             Object.keys(message),
             message,
-            i === 0 ? undefined : (data[i - 1]!).args,
-            { highlightKeys: true, showDifferences: true },
+            i === 0 ? undefined : (data[i - 1]!),
+            { highlightKeys: true, showDifferences: true, formatMultiline: true },
         );
         console.info(...formatForLoggingInBrowser("Message: ", result));
     });
