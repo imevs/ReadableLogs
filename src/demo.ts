@@ -1,4 +1,5 @@
-import { showLog } from "./PrettyLogs";
+import { showLogsInBrowserConsole, formatLogs } from "./PrettyLogs";
 import { logs } from "./testData";
 
-showLog(logs);
+const result = formatLogs(logs);
+showLogsInBrowserConsole(result);

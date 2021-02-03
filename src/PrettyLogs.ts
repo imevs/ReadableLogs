@@ -1,4 +1,4 @@
-type LOG = {
+export type LOG = {
     text: string;
     color: Color;
     path: string;
@@ -46,7 +46,7 @@ function highlightPartsOfMessage<T extends DataObject>(
 ): LOG {
     let res: LOG = [{
         text: options.formatMultiline ?
-            JSON.stringify(message, null, ' ') :
+            JSON.stringify(message, null, '  ') :
             JSON.stringify(message),
         color: "",
         path: "",
@@ -125,16 +125,27 @@ function formatForLoggingInBrowser(prefix: string, result: LOG) {
         ...(result.map(item => `color: ${item.color};`))];
 }
 
-export function showLog(data: DataObject[]) {
-    data.forEach((event, i) => {
-        const message = event;
+export function formatLogs(data: DataObject | DataObject[]): LOG | LOG[] {
+    const res: LOG[] = [];
+    const messages = (Array.isArray(data) ? data : [data]);
+    messages.forEach((message, i) => {
         const result = highlightPartsOfMessage(
             Object.keys(message),
             message,
-            i === 0 ? undefined : (data[i - 1]!),
+            i === 0 ? undefined : (messages[i - 1]!),
             { highlightKeys: true, showDifferences: true, formatMultiline: true },
         );
-        console.info(...formatForLoggingInBrowser("Message: ", result));
+        res.push(result);
+    });
+    if (!Array.isArray(data)) {
+        return res[0]!;
+    }
+    return res;
+}
+
+export function showLogsInBrowserConsole(result: LOG | LOG[]) {
+    ((Array.isArray(result[0]) ? result : [result]) as LOG[]).forEach(r => {
+        console.info(...formatForLoggingInBrowser("Message: ", r));
     });
 }
 

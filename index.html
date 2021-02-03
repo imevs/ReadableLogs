@@ -1,15 +1,20 @@
 <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
 <script>
-    require(['lib/testData', "lib/PrettyLogs"], (testData, PrettyLogs) => {
-        document.querySelector("#demo_input").textContent = JSON.stringify(testData.logs, null, ' ');
-        PrettyLogs.showLog(testData.logs);
+    require(['lib/testData', "lib/PrettyLogs", "lib/htmlFormatterUtils"], (testData, PrettyLogs, htmlFormatterUtils) => {
+        function executeFormatter(data) {
+            const res = PrettyLogs.formatLogs(data);
+            PrettyLogs.showLogsInBrowserConsole(res);
+            document.querySelector("#demo_input").innerHTML =
+                htmlFormatterUtils.highlightTextInHtml(res);
+        }
+        executeFormatter(testData.logs);
 
         document.querySelector("#run").addEventListener("click", () => {
             console.clear();
-            const data = document.querySelector("#demo_input").value;
+            const data = htmlFormatterUtils.removeHtmlEntities(document.querySelector("#demo_input").textContent);
             try {
-                const object = JSON.parse(data)
-                PrettyLogs.showLog(object);
+                const object = JSON.parse(data);
+                executeFormatter(object);
                 document.querySelector("#error").innerHTML = "";
             } catch (ex) {
                 document.querySelector("#error").innerHTML = JSON.stringify(ex.message);
@@ -20,7 +25,7 @@
 <h1>Welcome to ReadableLogs demo page!</h1>
 <h2>Open dev console in your browser to view the output for demo</h2>
 
-<textarea id="demo_input" style="width: 100%; height: 300px;">
-</textarea>
+<div id="demo_input" style="border: 1px solid black; width: 100%; height: 300px;" contenteditable="true">
+</div>
 <div id="error" style="color: red;"></div>
 <button id="run">Run!</button>
