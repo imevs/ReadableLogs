@@ -1,6 +1,6 @@
-import { showLogsInBrowserConsole, formatLogs } from "./PrettyLogs";
+import { formatLogs } from "./PrettyLogs";
 import { logs } from "./testData";
-import { highlightTextInHtml, removeHtmlEntities } from "./htmlFormatterUtils";
+import { showLogsInBrowserConsole, highlightTextInHtml, removeHtmlEntities } from "./formattingUtils";
 
 function executeFormatter(data: any) {
     const res = formatLogs(data);
