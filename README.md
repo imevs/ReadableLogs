@@ -27,7 +27,7 @@ Usage:
             a: 2,
             b: "3",
             c: ["4"]
-        },
+        }
     ];
     const formattedLogs = formatLogs(logs, { highlightKeys: true, showDifferences: true, formatMultiline: true });
     showLogsInBrowserConsole(formattedLogs);
