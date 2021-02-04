@@ -103,7 +103,7 @@ function highlightSubMessage(
     }, [] as LOG);
 }
 
-export function formatLogs(data: DataObject | DataObject[]): LOG | LOG[] {
+export function formatLogs(data: DataObject | DataObject[], options: Options): LOG | LOG[] {
     const res: LOG[] = [];
     const messages = (Array.isArray(data) ? data : [data]);
     messages.forEach((message, i) => {
@@ -111,7 +111,7 @@ export function formatLogs(data: DataObject | DataObject[]): LOG | LOG[] {
             Object.keys(message),
             message,
             i === 0 ? undefined : (messages[i - 1]!),
-            { highlightKeys: true, showDifferences: true, formatMultiline: true },
+            options,
         );
         res.push(result);
     });

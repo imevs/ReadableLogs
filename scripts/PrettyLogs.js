@@ -70,11 +70,11 @@ define(["require", "exports"], function (require, exports) {
             return acc;
         }, []);
     }
-    function formatLogs(data) {
+    function formatLogs(data, options) {
         const res = [];
         const messages = (Array.isArray(data) ? data : [data]);
         messages.forEach((message, i) => {
-            const result = highlightPartsOfMessage(Object.keys(message), message, i === 0 ? undefined : (messages[i - 1]), { highlightKeys: true, showDifferences: true, formatMultiline: true });
+            const result = highlightPartsOfMessage(Object.keys(message), message, i === 0 ? undefined : (messages[i - 1]), options);
             res.push(result);
         });
         if (!Array.isArray(data)) {

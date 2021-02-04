@@ -9,5 +9,10 @@ declare type DataObjectValues = ValueType | DataObject | DataObject[] | ValueTyp
 export interface DataObject {
     [key: string]: DataObjectValues;
 }
-export declare function formatLogs(data: DataObject | DataObject[]): LOG | LOG[];
+declare type Options = {
+    highlightKeys: boolean;
+    showDifferences: boolean;
+    formatMultiline: boolean;
+};
+export declare function formatLogs(data: DataObject | DataObject[], options: Options): LOG | LOG[];
 export {};

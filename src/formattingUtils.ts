@@ -16,7 +16,7 @@ function getColor(type: FormattingType): Color {
 
 export function showLogsInBrowserConsole(result: LOG | LOG[]) {
     ((Array.isArray(result[0]) ? result : [result]) as LOG[]).forEach(r => {
-        console.info(...formatForLoggingInBrowser("Message: ", r));
+        console.info(...formatForLoggingInBrowser("Formatted message: ", r));
     });
 }
 

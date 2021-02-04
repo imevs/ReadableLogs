@@ -2,9 +2,15 @@ define(["require", "exports", "./PrettyLogs", "./testData", "./formattingUtils"]
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function executeFormatter(data) {
-        const res = PrettyLogs_1.formatLogs(data);
+        if (Array.isArray(data)) {
+            data.forEach((item) => {
+                console.log("Default browser presentation", item);
+            });
+        }
+        const res = PrettyLogs_1.formatLogs(data, { highlightKeys: true, showDifferences: true, formatMultiline: false });
         formattingUtils_1.showLogsInBrowserConsole(res);
-        document.querySelector("#demo_input").innerHTML = formattingUtils_1.highlightTextInHtml(res);
+        const result2 = PrettyLogs_1.formatLogs(data, { highlightKeys: true, showDifferences: true, formatMultiline: true });
+        document.querySelector("#demo_input").innerHTML = formattingUtils_1.highlightTextInHtml(result2);
     }
     executeFormatter(testData_1.logs);
     document.querySelector("#run").addEventListener("click", () => {

@@ -3,9 +3,17 @@ import { logs } from "./testData";
 import { showLogsInBrowserConsole, highlightTextInHtml, removeHtmlEntities } from "./formattingUtils";
 
 function executeFormatter(data: any) {
-    const res = formatLogs(data);
+    if (Array.isArray(data)) {
+        data.forEach((item: any) => {
+            console.log("Default browser presentation", item);
+        });
+    }
+
+    const res = formatLogs(data, { highlightKeys: true, showDifferences: true, formatMultiline: false });
     showLogsInBrowserConsole(res);
-    document.querySelector("#demo_input")!.innerHTML = highlightTextInHtml(res);
+
+    const result2 = formatLogs(data, { highlightKeys: true, showDifferences: true, formatMultiline: true });
+    document.querySelector("#demo_input")!.innerHTML = highlightTextInHtml(result2);
 }
 executeFormatter(logs);
 
