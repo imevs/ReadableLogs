@@ -2,24 +2,25 @@ define(["require", "exports", "./PrettyLogs", "./testData", "./formattingUtils"]
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function executeFormatter(data) {
-        if (Array.isArray(data)) {
-            data.forEach((item) => {
-                console.log("Default browser presentation", item);
-            });
-        }
-        const res = PrettyLogs_1.formatLogs(data, { highlightKeys: true, showDifferences: true, formatMultiline: false });
-        formattingUtils_1.showLogsInBrowserConsole(res);
-        const result2 = PrettyLogs_1.formatLogs(data, { highlightKeys: true, showDifferences: true, formatMultiline: true });
-        document.querySelector("#demo_input").innerHTML = formattingUtils_1.highlightTextInHtml(result2);
+        console.log("Default browser presentation", data.current);
+        const result = PrettyLogs_1.parseMessage(data.current, { highlightKeys: true, showDifferences: true, formatMultiline: false }, data.prevObject);
+        console.info(...formattingUtils_1.formatForLoggingInBrowser("Formatted message: ", result));
+        const result2 = PrettyLogs_1.parseMessage(data.current, { highlightKeys: true, showDifferences: true, formatMultiline: true }, data.prevObject);
+        document.querySelector("#demo_input_currentMessage").innerHTML = formattingUtils_1.highlightTextInHtml(result2);
+        document.querySelector("#demo_input_prevMessage").innerHTML =
+            formattingUtils_1.formatMultiLineTextAsHTML(JSON.stringify(data.prevObject, null, '  '));
     }
     executeFormatter(testData_1.logs);
     document.querySelector("#run").addEventListener("click", () => {
-        var _a;
+        var _a, _b;
         console.clear();
-        const data = formattingUtils_1.removeHtmlEntities((_a = document.querySelector("#demo_input").textContent) !== null && _a !== void 0 ? _a : "");
+        const currentLoggableMessage = formattingUtils_1.removeHtmlEntities((_a = document.querySelector("#demo_input_currentMessage").textContent) !== null && _a !== void 0 ? _a : "");
+        const prevMessage = formattingUtils_1.removeHtmlEntities((_b = document.querySelector("#demo_input_prevMessage").textContent) !== null && _b !== void 0 ? _b : "");
         try {
-            const object = JSON.parse(data);
-            executeFormatter(object);
+            executeFormatter({
+                prevObject: JSON.parse(prevMessage),
+                current: JSON.parse(currentLoggableMessage),
+            });
             document.querySelector("#error").innerHTML = "";
         }
         catch (ex) {

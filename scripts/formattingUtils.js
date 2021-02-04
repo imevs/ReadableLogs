@@ -1,7 +1,7 @@
 define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.highlightTextInHtml = exports.removeHtmlEntities = exports.showLogsInBrowserConsole = void 0;
+    exports.highlightTextInHtml = exports.removeHtmlEntities = exports.formatMultiLineTextAsHTML = exports.formatForLoggingInBrowser = void 0;
     const typeToColorMap = {
         "": "",
         key: "red",
@@ -12,19 +12,15 @@ define(["require", "exports"], function (require, exports) {
     function getColor(type) {
         return typeToColorMap[type];
     }
-    function showLogsInBrowserConsole(result) {
-        (Array.isArray(result[0]) ? result : [result]).forEach(r => {
-            console.info(...formatForLoggingInBrowser("Formatted message: ", r));
-        });
-    }
-    exports.showLogsInBrowserConsole = showLogsInBrowserConsole;
     function formatForLoggingInBrowser(prefix, result) {
         return [prefix + result.map(item => "%c" + item.text).join(""),
             ...(result.map(item => `color: ${getColor(item.type)};`))];
     }
+    exports.formatForLoggingInBrowser = formatForLoggingInBrowser;
     function formatMultiLineTextAsHTML(content) {
         return content.split(' ').join('&nbsp;').split("\n").join("<br />");
     }
+    exports.formatMultiLineTextAsHTML = formatMultiLineTextAsHTML;
     function removeHtmlEntities(content) {
         return content.split(String.fromCharCode(160)).join(' ').split("<br />").join("\n");
     }

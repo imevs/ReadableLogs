@@ -17,20 +17,36 @@ Browsers support:
 
 Usage:
 ```js
-    const logs = [
-        {
-            a: 1,
-            b: "2",
-            c: []
-        },
-        {
-            a: 2,
-            b: "3",
-            c: ["4"]
-        }
-    ];
-    const formattedLogs = formatLogs(logs, { highlightKeys: true, showDifferences: true, formatMultiline: true });
-    showLogsInBrowserConsole(formattedLogs);
+    import { parseMessage } from "./PrettyLogs";
+    import { formatForLoggingInBrowser } from "./formattingUtils";
+
+    const message = {
+        a: 1,
+        b: "2",
+        c: ["3"]
+    };
+    const parsedMessage = parseMessage(message, { highlightKeys: true, formatMultiline: true });
+    console.info(...formatForLoggingInBrowser("Formatted message: ", parsedMessage));
+```
+or
+
+```js
+    import { parseMessage } from "./PrettyLogs";
+    import { formatForLoggingInBrowser } from "./formattingUtils";
+
+    const prevMessage = {
+        a: 0,
+        b: "3",
+        c: []
+    };
+    const message = {
+        a: 1,
+        b: "2",
+        c: ["3"]
+    };
+    // if prevMessage is provided it should be able to apply option "showDifferences"
+    const parsedMessage = parseMessage(message, { highlightKeys: true, showDifferences: true, formatMultiline: true }, prevMessage);
+    console.info(...formatForLoggingInBrowser("Formatted message: ", parsedMessage));
 ```
 
 Demo page: https://imevs.github.io/ReadableLogs/

@@ -1,7 +1,7 @@
 define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.formatLogs = void 0;
+    exports.parseMessage = void 0;
     function isDifferent(obj1, obj2) {
         return JSON.stringify(obj1) !== JSON.stringify(obj2);
     }
@@ -18,8 +18,8 @@ define(["require", "exports"], function (require, exports) {
             if (options.highlightKeys) {
                 res = highlightSubMessage(`"${key}"`, res, "key", false, path);
             }
-            if (options.showDifferences) {
-                if (prevMessage !== undefined && prevMessage[key] !== undefined &&
+            if (options.showDifferences && prevMessage !== undefined) {
+                if (prevMessage[key] !== undefined &&
                     isDifferent(prevMessage[key], message[key])) {
                     const subMessage = message[key];
                     const type = "changed";
@@ -70,17 +70,8 @@ define(["require", "exports"], function (require, exports) {
             return acc;
         }, []);
     }
-    function formatLogs(data, options) {
-        const res = [];
-        const messages = (Array.isArray(data) ? data : [data]);
-        messages.forEach((message, i) => {
-            const result = highlightPartsOfMessage(Object.keys(message), message, i === 0 ? undefined : (messages[i - 1]), options);
-            res.push(result);
-        });
-        if (!Array.isArray(data)) {
-            return res[0];
-        }
-        return res;
+    function parseMessage(data, options, prevMessage) {
+        return highlightPartsOfMessage(Object.keys(data), data, prevMessage, options);
     }
-    exports.formatLogs = formatLogs;
+    exports.parseMessage = parseMessage;
 });

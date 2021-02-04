@@ -15,9 +15,9 @@ function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
     return JSON.stringify(obj1) !== JSON.stringify(obj2);
 }
 
-type Options = {
+export type Options = {
     highlightKeys: boolean;
-    showDifferences: boolean;
+    showDifferences?: boolean;
     formatMultiline: boolean;
 }
 
@@ -39,8 +39,8 @@ function highlightPartsOfMessage<T extends DataObject>(
         if (options.highlightKeys) {
             res = highlightSubMessage(`"${key}"`, res, "key", false, path);
         }
-        if (options.showDifferences) {
-            if (prevMessage !== undefined && prevMessage[key] !== undefined &&
+        if (options.showDifferences && prevMessage !== undefined) {
+            if (prevMessage[key] !== undefined &&
                 isDifferent(prevMessage[key], message[key])) {
                 const subMessage = message[key];
                 const type = "changed";
@@ -103,21 +103,7 @@ function highlightSubMessage(
     }, [] as LOG);
 }
 
-export function formatLogs(data: DataObject | DataObject[], options: Options): LOG | LOG[] {
-    const res: LOG[] = [];
-    const messages = (Array.isArray(data) ? data : [data]);
-    messages.forEach((message, i) => {
-        const result = highlightPartsOfMessage(
-            Object.keys(message),
-            message,
-            i === 0 ? undefined : (messages[i - 1]!),
-            options,
-        );
-        res.push(result);
-    });
-    if (!Array.isArray(data)) {
-        return res[0]!;
-    }
-    return res;
+export function parseMessage(data: DataObject, options: Options, prevMessage?: DataObject): LOG {
+    return highlightPartsOfMessage(Object.keys(data), data, prevMessage, options);
 }
 

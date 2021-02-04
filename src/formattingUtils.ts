@@ -14,18 +14,12 @@ function getColor(type: FormattingType): Color {
     return typeToColorMap[type];
 }
 
-export function showLogsInBrowserConsole(result: LOG | LOG[]) {
-    ((Array.isArray(result[0]) ? result : [result]) as LOG[]).forEach(r => {
-        console.info(...formatForLoggingInBrowser("Formatted message: ", r));
-    });
-}
-
-function formatForLoggingInBrowser(prefix: string, result: LOG) {
+export function formatForLoggingInBrowser(prefix: string, result: LOG) {
     return [prefix + result.map(item => "%c" + item.text).join(""),
         ...(result.map(item => `color: ${getColor(item.type)};`))];
 }
 
-function formatMultiLineTextAsHTML(content: string) {
+export function formatMultiLineTextAsHTML(content: string) {
     return content.split(' ').join('&nbsp;').split("\n").join("<br />");
 }
 export function removeHtmlEntities(content: string) {
