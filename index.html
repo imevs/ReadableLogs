@@ -1,26 +1,6 @@
 <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
 <script>
-    require(['scripts/testData', "scripts/PrettyLogs", "scripts/htmlFormatterUtils"], (testData, PrettyLogs, htmlFormatterUtils) => {
-        function executeFormatter(data) {
-            const res = PrettyLogs.formatLogs(data);
-            PrettyLogs.showLogsInBrowserConsole(res);
-            document.querySelector("#demo_input").innerHTML =
-                htmlFormatterUtils.highlightTextInHtml(res);
-        }
-        executeFormatter(testData.logs);
-
-        document.querySelector("#run").addEventListener("click", () => {
-            console.clear();
-            const data = htmlFormatterUtils.removeHtmlEntities(document.querySelector("#demo_input").textContent);
-            try {
-                const object = JSON.parse(data);
-                executeFormatter(object);
-                document.querySelector("#error").innerHTML = "";
-            } catch (ex) {
-                document.querySelector("#error").innerHTML = JSON.stringify(ex.message);
-            }
-        });
-    });
+    require(['scripts/demo'], () => {});
 </script>
 <h1>Welcome to ReadableLogs demo page!</h1>
 <h2>Open dev console in your browser to view the output for demo</h2>
