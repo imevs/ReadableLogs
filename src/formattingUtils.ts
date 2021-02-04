@@ -1,4 +1,4 @@
-import { FormattingType, LOG } from "src/PrettyLogs";
+import { FormattingType, LOG } from "./PrettyLogs";
 
 type Color = "red" | "blue" | "purple" | "orange" | "green" | "";
 
@@ -6,7 +6,7 @@ const typeToColorMap: { [K in FormattingType]: Color; } = {
     "": "",
     key: "red",
     added: "blue",
-    changed: "purple",
+    changed: "green",
     removed: "orange",
 };
 
