@@ -12,7 +12,8 @@ export interface DataObject {
 export declare type Options = {
     highlightKeys: boolean;
     showDifferences?: boolean;
-    formatMultiline: boolean;
+    formatMultiline?: boolean;
 };
-export declare function parseMessage(data: DataObject, options: Options, prevMessage?: DataObject): LOG;
+export declare function parseMessage(data: DataObject, options: Omit<Options, "showDifferences">, prevMessage?: undefined): LOG;
+export declare function parseMessage(data: DataObject, options: Options, prevMessage: DataObject): LOG;
 export {};

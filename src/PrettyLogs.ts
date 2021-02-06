@@ -18,7 +18,7 @@ function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
 export type Options = {
     highlightKeys: boolean;
     showDifferences?: boolean;
-    formatMultiline: boolean;
+    formatMultiline?: boolean;
 }
 
 function highlightPartsOfMessage<T extends DataObject>(
@@ -40,22 +40,22 @@ function highlightPartsOfMessage<T extends DataObject>(
             res = highlightSubMessage(`"${key}"`, res, "key", false, path);
         }
         if (options.showDifferences && prevMessage !== undefined) {
-            if (prevMessage[key] !== undefined &&
-                isDifferent(prevMessage[key], message[key])) {
-                const subMessage = message[key];
-                const type = "changed";
+            const subMessage = message[key];
+            if (prevMessage[key] !== undefined && isDifferent(prevMessage[key], subMessage)) {
                 if (typeof subMessage === "object" && subMessage !== null && subMessage !== undefined) {
-                    res = highlightSubObject(subMessage as DataObject, prevMessage[key] as DataObject, res, type, path);
+                    res = highlightSubObject(subMessage as DataObject, prevMessage[key] as DataObject, res, path);
                 } else {
-                    res = highlightSubMessage(JSON.stringify(subMessage), res, type, true, path);
+                    res = highlightSubMessage(JSON.stringify(subMessage), res, "changed", true, path);
                 }
+            } else if (prevMessage[key] === undefined && subMessage !== undefined) {
+                res = highlightSubMessage(JSON.stringify(subMessage), res, "added", true, path);
             }
         }
     });
     return res;
 }
 
-function highlightSubObject<T extends DataObject>(subObject: T, prevObject: T, loggedParts: LOG, type: FormattingType, path: string): LOG {
+function highlightSubObject<T extends DataObject>(subObject: T, prevObject: T, loggedParts: LOG, path: string): LOG {
     let res = loggedParts;
     Object.keys(subObject).forEach((key) => {
         const updatedPath = path + `/${key}`;
@@ -63,15 +63,15 @@ function highlightSubObject<T extends DataObject>(subObject: T, prevObject: T, l
             if (isDifferent(subObject[key], prevObject[key])) {
                 if (typeof subObject[key] === "object" && subObject[key] !== null) {
                     res = highlightSubObject(subObject[key] as DataObject,
-                        prevObject[key] as DataObject, loggedParts, type, updatedPath);
+                        prevObject[key] as DataObject, loggedParts, updatedPath);
                 } else {
                     res = highlightSubMessage(JSON.stringify(subObject[key]),
-                        loggedParts, type, true, updatedPath);
+                        loggedParts, "changed", true, updatedPath);
                 }
             }
         } else {
             res = highlightSubMessage(JSON.stringify(subObject[key]),
-                loggedParts, type, true, updatedPath);
+                loggedParts, "added", true, updatedPath);
         }
     });
     return res;
@@ -103,7 +103,9 @@ function highlightSubMessage(
     }, [] as LOG);
 }
 
-export function parseMessage(data: DataObject, options: Options, prevMessage?: DataObject): LOG {
+export function parseMessage(data: DataObject, options: Omit<Options, "showDifferences">, prevMessage?: undefined): LOG;
+export function parseMessage(data: DataObject, options: Options, prevMessage: DataObject): LOG;
+export function parseMessage(data: DataObject, options: Options, prevMessage: undefined | DataObject): LOG {
     return highlightPartsOfMessage(Object.keys(data), data, prevMessage, options);
 }
 

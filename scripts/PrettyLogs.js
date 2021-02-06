@@ -19,37 +19,38 @@ define(["require", "exports"], function (require, exports) {
                 res = highlightSubMessage(`"${key}"`, res, "key", false, path);
             }
             if (options.showDifferences && prevMessage !== undefined) {
-                if (prevMessage[key] !== undefined &&
-                    isDifferent(prevMessage[key], message[key])) {
-                    const subMessage = message[key];
-                    const type = "changed";
+                const subMessage = message[key];
+                if (prevMessage[key] !== undefined && isDifferent(prevMessage[key], subMessage)) {
                     if (typeof subMessage === "object" && subMessage !== null && subMessage !== undefined) {
-                        res = highlightSubObject(subMessage, prevMessage[key], res, type, path);
+                        res = highlightSubObject(subMessage, prevMessage[key], res, path);
                     }
                     else {
-                        res = highlightSubMessage(JSON.stringify(subMessage), res, type, true, path);
+                        res = highlightSubMessage(JSON.stringify(subMessage), res, "changed", true, path);
                     }
+                }
+                else if (prevMessage[key] === undefined && subMessage !== undefined) {
+                    res = highlightSubMessage(JSON.stringify(subMessage), res, "added", true, path);
                 }
             }
         });
         return res;
     }
-    function highlightSubObject(subObject, prevObject, loggedParts, type, path) {
+    function highlightSubObject(subObject, prevObject, loggedParts, path) {
         let res = loggedParts;
         Object.keys(subObject).forEach((key) => {
             const updatedPath = path + `/${key}`;
             if (prevObject[key] !== undefined) {
                 if (isDifferent(subObject[key], prevObject[key])) {
                     if (typeof subObject[key] === "object" && subObject[key] !== null) {
-                        res = highlightSubObject(subObject[key], prevObject[key], loggedParts, type, updatedPath);
+                        res = highlightSubObject(subObject[key], prevObject[key], loggedParts, updatedPath);
                     }
                     else {
-                        res = highlightSubMessage(JSON.stringify(subObject[key]), loggedParts, type, true, updatedPath);
+                        res = highlightSubMessage(JSON.stringify(subObject[key]), loggedParts, "changed", true, updatedPath);
                     }
                 }
             }
             else {
-                res = highlightSubMessage(JSON.stringify(subObject[key]), loggedParts, type, true, updatedPath);
+                res = highlightSubMessage(JSON.stringify(subObject[key]), loggedParts, "added", true, updatedPath);
             }
         });
         return res;
