@@ -29,7 +29,7 @@ function highlightPartsOfMessage<T extends DataObject>(
 ): LOG {
     let res: LOG = [{
         text: options.formatMultiline ?
-            JSON.stringify(message, null, '  ') :
+            JSON.stringify(message, null, "  ") :
             JSON.stringify(message),
         type: "",
         path: "",

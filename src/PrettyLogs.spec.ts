@@ -1,10 +1,10 @@
-import chai from 'chai';
+import chai from "chai";
 const assert = chai.assert;
 import { parseMessage } from "./PrettyLogs";
 
-describe('PrettyLogs', () => {
-    describe('parseMessage', () => {
-        it('should parse JSON object', () => {
+describe("PrettyLogs", () => {
+    describe("parseMessage", () => {
+        it("should parse JSON object", () => {
             assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true }), [
                 {
                     "path": "",
@@ -13,7 +13,7 @@ describe('PrettyLogs', () => {
                 },
                 {
                     "path": "/a",
-                    "text": `"a"`,
+                    "text": "\"a\"",
                     "type": "key"
                 },
                 {
@@ -24,7 +24,7 @@ describe('PrettyLogs', () => {
             ]);
         });
 
-        it('should parse JSON object with changed attr', () => {
+        it("should parse JSON object with changed attr", () => {
             const prevObject = { a: 2 };
             assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true, showDifferences: true }, prevObject), [
                 {
@@ -55,7 +55,7 @@ describe('PrettyLogs', () => {
             ]);
         });
 
-        it('should parse JSON object with added attr', () => {
+        it("should parse JSON object with added attr", () => {
             const prevObject = {};
             assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true, showDifferences: true }, prevObject), [
                 {
@@ -86,7 +86,7 @@ describe('PrettyLogs', () => {
             ]);
         });
 
-        it('should parse JSON object with changed sub object', () => {
+        it("should parse JSON object with changed sub object", () => {
             const prevObject = { a: { c: 1 }};
             assert.deepEqual(parseMessage({ "a": { c: 2 } }, { highlightKeys: true, showDifferences: true }, prevObject), [
                 {
@@ -117,7 +117,7 @@ describe('PrettyLogs', () => {
             ]);
         });
 
-        it('should parse JSON object with added attribute in sub object', () => {
+        it("should parse JSON object with added attribute in sub object", () => {
             const prevObject = { a: { }};
             assert.deepEqual(parseMessage({ "a": { c: 2 } }, { highlightKeys: true, showDifferences: true }, prevObject), [
                 {

@@ -18,7 +18,7 @@ function executeFormatter(data: typeof logs) {
         { highlightKeys: true, showDifferences: true, formatMultiline: true }, data.prevObject);
     document.querySelector("#demo_input_currentMessage")!.innerHTML = highlightTextInHtml(result2);
     document.querySelector("#demo_input_prevMessage")!.innerHTML =
-        formatMultiLineTextAsHTML(JSON.stringify(data.prevObject, null, '  '));
+        formatMultiLineTextAsHTML(JSON.stringify(data.prevObject, null, "  "));
 }
 executeFormatter(logs);
 

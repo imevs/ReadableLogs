@@ -14,16 +14,16 @@ function getColor(type: FormattingType): Color {
     return typeToColorMap[type];
 }
 
-export function formatForLoggingInBrowser(prefix: string, result: LOG) {
+export function formatForLoggingInBrowser(prefix: string, result: LOG): string[] {
     return [prefix + result.map(item => "%c" + item.text).join(""),
         ...(result.map(item => `color: ${getColor(item.type)};`))];
 }
 
-export function formatMultiLineTextAsHTML(content: string) {
-    return content.split(' ').join('&nbsp;').split("\n").join("<br />");
+export function formatMultiLineTextAsHTML(content: string): string {
+    return content.split(" ").join("&nbsp;").split("\n").join("<br />");
 }
-export function removeHtmlEntities(content: string) {
-    return content.split(String.fromCharCode(160)).join(' ').split("<br />").join("\n");
+export function removeHtmlEntities(content: string): string {
+    return content.split(String.fromCharCode(160)).join(" ").split("<br />").join("\n");
 }
 export function highlightTextInHtml(messages: LOG | LOG[]): string {
     const formattedMessages = ((Array.isArray(messages[0]) ? messages : [messages]) as LOG[]).map(message => {
