@@ -1,14 +1,27 @@
 {
-  "name": "prettylogs",
+  "name": "readable-json-log",
   "version": "0.0.1",
-  "description": "Utility to format logs for browser console in more readable way (highlight changes, colorify JSON syntax)",
-  "main": "index.js",
+  "description": "Utility to format logs for browser console in more readable way (to highlight changes and colorify JSON syntax)",
+  "main": "dist/index.js",
   "scripts": {
     "tsc": "tsc",
+    "dist": "tsc -p tsconfig.dist.json",
     "lint": "eslint ./src",
     "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register ./src/*spec.ts"
   },
-  "author": "",
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://imevs.github.io/ReadableLogs/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imevs/ReadableLogs"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "author": "imevs",
   "license": "MIT",
   "dependencies": {
     "typescript": "^4.1.3"

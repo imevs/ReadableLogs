@@ -15,7 +15,13 @@ Browsers support:
 - Safari
 - Firefox
 
-Usage:
+## Installation
+
+```
+npm install readable-json-log
+```
+
+# Usage
 ```js
     import { parseMessage } from "./PrettyLogs";
     import { formatForLoggingInBrowser } from "./formattingUtils";
