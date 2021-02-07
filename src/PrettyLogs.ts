@@ -103,9 +103,9 @@ function highlightSubMessage(
     }, [] as LOG);
 }
 
-export function parseMessage(data: DataObject, options: Omit<Options, "showDifferences">, prevMessage?: undefined): LOG;
+export function parseMessage(data: DataObject, options?: Omit<Options, "showDifferences">, prevMessage?: undefined): LOG;
 export function parseMessage(data: DataObject, options: Options, prevMessage: DataObject): LOG;
-export function parseMessage(data: DataObject, options: Options, prevMessage: undefined | DataObject): LOG {
-    return highlightPartsOfMessage(Object.keys(data), data, prevMessage, options);
+export function parseMessage(data: DataObject, options: undefined | Options, prevMessage: undefined | DataObject): LOG {
+    return highlightPartsOfMessage(Object.keys(data), data, prevMessage, options ?? { highlightKeys: true });
 }
 

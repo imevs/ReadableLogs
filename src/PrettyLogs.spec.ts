@@ -4,6 +4,12 @@ import { parseMessage } from "./PrettyLogs";
 
 describe("PrettyLogs", () => {
     describe("parseMessage", () => {
+        it("should build valid JSON stringified content", () => {
+            const message = { "a": 1, c: { b: "2" } };
+            const result = parseMessage(message);
+            assert.equal(result.map(i => i.text).join(""), JSON.stringify(message));
+        });
+
         it("should parse JSON object", () => {
             assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true }), [
                 {

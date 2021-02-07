@@ -16,7 +16,7 @@ function getColor(type: FormattingType): Color {
 
 export function formatForLoggingInBrowser(prefix: string, result: LOG): string[] {
     return [prefix + result.map(item => "%c" + item.text).join(""),
-        ...(result.map(item => `color: ${getColor(item.type)};`))];
+        ...(result.map(item => item.type !== "" ? `color: ${getColor(item.type)};` : ""))];
 }
 
 export function formatMultiLineTextAsHTML(content: string): string {
