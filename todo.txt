@@ -1,0 +1,5 @@
+TODO:
+* Full JSON highlightning (number / string / boolean)
+* format logs for NODE console
+* mark removed nodes (with comments in log text)
+* json to yaml formatting (with colorful logging)
