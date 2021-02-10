@@ -7,8 +7,8 @@ export const logs: { prevObject: DataObject; current: DataObject; } = {
         c: []
     },
     current: {
-        a: 2,
-        b: "3",
-        c: ["4"]
+        a: 4,
+        b: "5",
+        c: [{ a: 6}, { a: 7 }]
     },
 };

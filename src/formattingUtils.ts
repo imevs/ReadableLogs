@@ -1,13 +1,13 @@
 import { FormattingType, LOG } from "./PrettyLogs";
 
-type Color = "red" | "blue" | "purple" | "orange" | "green" | "";
+type Color = "red" | "blue" | "pink" | "orange" | "green" | "";
 
 const typeToColorMap: { [K in FormattingType]: Color; } = {
     "": "",
-    key: "red",
+    key: "orange",
     added: "blue",
     changed: "green",
-    removed: "orange",
+    removed: "red",
 };
 
 function getColor(type: FormattingType): Color {

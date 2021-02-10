@@ -11,14 +11,15 @@ function executeFormatter(data: typeof logs) {
     console.log("Default browser presentation", data.current);
 
     const result = parseMessage(data.current,
-        { highlightKeys: true, showDifferences: true, formatMultiline: false }, data.prevObject);
+        { highlightKeys: false, showDifferences: true, formatMultiline: false }, data.prevObject);
     console.info(...formatForLoggingInBrowser("Formatted message: ", result));
+    console.log(result);
 
     const result2 = parseMessage(data.current,
-        { highlightKeys: true, showDifferences: true, formatMultiline: true }, data.prevObject);
+        { highlightKeys: true, showDifferences: false, formatMultiline: true }, data.prevObject);
     document.querySelector("#demo_input_currentMessage")!.innerHTML = highlightTextInHtml(result2);
     document.querySelector("#demo_input_prevMessage")!.innerHTML =
-        formatMultiLineTextAsHTML(JSON.stringify(data.prevObject, null, "  "));
+        formatMultiLineTextAsHTML(JSON.stringify(data.prevObject ?? {}, null, "  "));
 }
 executeFormatter(logs);
 
