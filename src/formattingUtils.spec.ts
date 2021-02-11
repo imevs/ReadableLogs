@@ -8,15 +8,17 @@ describe("formattingUtils", () => {
 
     describe("formatForLoggingInBrowser", () => {
         it("should return arguments for console logging", () => {
-            const message = { "a": 1, c: { b: "2" } };
+            const message = { a: 1, c: { b: "2" } };
             const result = parseMessage(message);
             assert.deepEqual(formatForLoggingInBrowser("", result), [
-                '%c{%c"a"%c:1,%c"c"%c:{"b":"2"}}',
+                '%c{%c"a"%c:1,%c"c"%c:{%c"b"%c:"2"}}',
                 "",
-                "color: red;",
+                "color: orange;",
                 "",
-                "color: red;",
+                "color: orange;",
                 "",
+                "color: orange;",
+                ""
             ]);
         });
     });
