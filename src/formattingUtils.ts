@@ -15,8 +15,14 @@ function getColor(type: FormattingType): Color {
 }
 
 export function formatForLoggingInBrowser(prefix: string, result: LOG): string[] {
-    return [prefix + result.map(item => "%c" + item.text).join(""),
-        ...(result.map(item => item.type !== "" ? `color: ${getColor(item.type)};` : ""))];
+    return [
+        prefix +
+        result.filter(item => item.type !== "removed").map(item => "%c" + item.text).join("") +
+        (result.filter(item => item.type === "removed").length > 0 ? " Removed: " : "") +
+        result.filter(item => item.type === "removed").map(item => "%c" + item.path + ":" + item.text).join(","),
+        ...result.filter(item => item.type !== "removed").map(item => item.type !== "" ? `color: ${getColor(item.type)};` : ""),
+        ...result.filter(item => item.type === "removed").map(item => item.type !== "" ? `color: ${getColor(item.type)};` : "")
+    ];
 }
 
 export function formatMultiLineTextAsHTML(content: string): string {

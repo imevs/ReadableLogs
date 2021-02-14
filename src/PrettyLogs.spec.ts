@@ -127,5 +127,53 @@ describe("PrettyLogs", () => {
                 { text: ',"b":"5","c":[{"a":6},{"a":7}]}', type: "", path: "/a" }
             ]);
         });
+
+        it("should search for removed parts in simple object", () => {
+            const prevObject = {
+                b: "2",
+            };
+            const current = {
+                a: 4,
+            };
+            const result = parseMessage(current, { highlightKeys: true, showDifferences: true }, prevObject);
+            assert.deepEqual(result, [
+                { text: "{", type: "", path: "" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ":", type: "", path: "/a" },
+                { text: "4", type: "added", path: "/a" },
+                { text: "}", type: "", path: "/a" },
+                { type: "removed", path: "/b", text: '"2"' }
+            ]);
+        });
+
+        it("should search for removed parts in deep object", () => {
+            const prevObject = { b: { c: { a: 1 } } };
+            const current = { b: { c: {} } };
+            const result = parseMessage(current, { highlightKeys: true, showDifferences: true }, prevObject);
+            console.log(result);
+            assert.deepEqual(result, [
+                { text: "{", type: "", path: "" },
+                { text: '"b"', type: "key", path: "/b" },
+                { text: ":{", type: "", path: "/b" },
+                { text: '"c"', type: "key", path: "/b/c" },
+                { text: ":{}}}", type: "", path: "/b/c" },
+                { type: "removed", path: "/b/c/a", text: "1" }
+            ]);
+        });
+
+        it("should search for removed parts in arrays", () => {
+            const prevObject = { b: [{ a: 1}, {a: 2}] };
+            const current = { b: [{ a: 1} ] };
+            const result = parseMessage(current, { highlightKeys: true, showDifferences: true }, prevObject);
+            console.log(result);
+            assert.deepEqual(result, [
+                { text: "{", type: "", path: "" },
+                { text: '"b"', type: "key", path: "/b" },
+                { text: ":[{", type: "", path: "/b" },
+                { text: '"a"', type: "key", path: "/b/0/a" },
+                { text: ":1}]}", type: "", path: "/b/0/a" },
+                { type: "removed", path: "/b/1", text: '{"a":2}' }
+            ]);
+        });
     });
 });

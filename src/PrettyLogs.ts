@@ -36,17 +36,8 @@ function serializeData(message: DataObjectValues | DataObject, options: Options)
     }
 }
 
-function highlightPartsOfMessage<T extends DataObject>(
-    keys: (keyof T)[],
-    message: T,
-    prevMessage: undefined | T,
-    options: Options,
-): LOG {
-    let res: LOG = [{
-        text: serializeData(message, options),
-        type: "",
-        path: "",
-    }];
+function highlightPartsOfMessage<T extends DataObject>(message: T, prevMessage: undefined | T, options: Options): LOG {
+    let res: LOG = [{ text: serializeData(message, options), type: "", path: "" }];
     if (options.highlightKeys) {
         res = highlightSubObjectKeys(message, res, "", options);
         res.forEach((item, index) => {
@@ -56,24 +47,8 @@ function highlightPartsOfMessage<T extends DataObject>(
         });
     }
     if (options.showDifferences && prevMessage !== undefined) {
-        keys.forEach(key => {
-            const path = `/${key}`;
-            const subMessage = message[key];
-            if (subMessage === undefined) {
-                return;
-            }
-            if (prevMessage[key] !== undefined) {
-                if (isDifferent(prevMessage[key], subMessage)) {
-                    if (typeof subMessage === "object" && subMessage !== null) {
-                        res = highlightSubObject(subMessage as DataObject, prevMessage[key] as DataObject, res, path, options);
-                    } else {
-                        res = highlightSubMessageData(serializeData(subMessage, options), res, "changed", path);
-                    }
-                }
-            } else {
-                res = highlightSubMessageData(serializeData(subMessage, options), res, "added", path);
-            }
-        });
+        res = highlightSubObject(message, prevMessage, res, "", options);
+        res = searchForRemovedData(message, prevMessage, res, "", options);
     }
     return res;
 }
@@ -82,25 +57,44 @@ function highlightSubObject<T extends DataObject>(
     subObject: T, prevObject: T, loggedParts: LOG, path: string, options: Options): LOG {
     let res = [...loggedParts];
     Object.keys(subObject).forEach((key) => {
-        const subObjectPart = subObject[key];
-        const updatedPath = path + `/${key}`;
         if (prevObject === undefined) {
             return;
         } else {
+            const subObjectPart = subObject[key];
+            const updatedPath = path + `/${key}`;
             if (prevObject[key] !== undefined) {
                 if (isDifferent(subObjectPart, prevObject[key])) {
                     if (typeof subObjectPart === "object" && subObjectPart !== null) {
                         res = highlightSubObject(subObjectPart as DataObject,
                             prevObject[key] as DataObject, res, updatedPath, options);
                     } else {
-                        res = highlightSubMessageData(serializeData(subObjectPart, options),
-                            res, "changed", updatedPath);
+                        res = highlightSubMessage(
+                            serializeData(subObjectPart, options), res, "changed", true, updatedPath);
                     }
                 }
             } else {
-                res = highlightSubMessageData(serializeData(subObjectPart, options),
-                    res, "added", updatedPath);
+                res = highlightSubMessage(
+                    serializeData(subObjectPart, options), res, "added", true, updatedPath);
             }
+        }
+    });
+    return res;
+}
+
+function searchForRemovedData<T extends DataObject>(
+    subObject: T, prevObject: T, loggedParts: LOG, path: string, options: Options): LOG {
+    let res = [...loggedParts];
+    Object.keys(prevObject).forEach(key => {
+        const subMessage = subObject[key];
+        const updatedPath = path + `/${key}`;
+        if (subMessage === undefined) {
+            res.push({
+                type: "removed",
+                path: updatedPath,
+                text: serializeData(prevObject[key], options),
+            });
+        } else if (typeof subMessage === "object" && subMessage !== null) {
+            res = searchForRemovedData(subMessage as DataObject, prevObject[key] as DataObject, res, updatedPath, options);
         }
     });
     return res;
@@ -117,15 +111,6 @@ function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts:
         }
     });
     return result;
-}
-
-function highlightSubMessageData(
-    partMsgString: string,
-    loggedParts: LOG,
-    type: FormattingType,
-    path: string,
-): LOG {
-    return highlightSubMessage(partMsgString, loggedParts, type, true, path);
 }
 
 function highlightSubMessage(
@@ -164,6 +149,6 @@ function highlightSubMessage(
 export function parseMessage(data: DataObject, options?: { highlightKeys: boolean; formatMultiline?: boolean; }, prevMessage?: undefined): LOG;
 export function parseMessage(data: DataObject, options: Options, prevMessage: DataObject): LOG;
 export function parseMessage(data: DataObject, options: undefined | Options, prevMessage: undefined | DataObject): LOG {
-    return highlightPartsOfMessage(Object.keys(data), data, prevMessage, options ?? { highlightKeys: true });
+    return highlightPartsOfMessage(data, prevMessage, options ?? { highlightKeys: true });
 }
 

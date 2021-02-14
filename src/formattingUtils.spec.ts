@@ -21,5 +21,20 @@ describe("formattingUtils", () => {
                 ""
             ]);
         });
+
+        it("should return arguments for console logging including removed parts", () => {
+            const prevObject = { b: [{ a: 1}, {a: 2}] };
+            const current = { b: [{ a: 1} ] };
+            const result = parseMessage(current, { highlightKeys: true, showDifferences: true }, prevObject);
+            assert.deepEqual(formatForLoggingInBrowser("", result), [
+                '%c{%c"b"%c:[{%c"a"%c:1}]} Removed: %c/b/1:{"a":2}',
+                "",
+                "color: orange;",
+                "",
+                "color: orange;",
+                "",
+                "color: red;"
+            ]);
+        });
     });
 });
