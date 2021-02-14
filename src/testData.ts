@@ -1,4 +1,4 @@
-import { DataObject } from "./PrettyLogs";
+import { DataObject } from "./types";
 
 export const logs: { prevObject: DataObject; current: DataObject; } = {
     prevObject: {
