@@ -1,4 +1,4 @@
-import { FormattingType, LOG } from "./PrettyLogs";
+import { FormattingType, LOG } from "./types";
 
 type Color = "red" | "blue" | "pink" | "orange" | "green" | "";
 
