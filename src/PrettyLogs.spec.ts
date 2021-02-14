@@ -14,7 +14,7 @@ describe("PrettyLogs", () => {
             assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true }), [
                 { path: "", text: "{", type: "" },
                 { path: "/a", text: '"a"', type: "key" },
-                { path: "", text: ":1}", type: "" }
+                { path: "/a", text: ":1}", type: "" }
             ]);
         });
 
@@ -23,9 +23,9 @@ describe("PrettyLogs", () => {
             assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true, showDifferences: true }, prevObject), [
                 { path: "", text: "{", type: "" },
                 { path: "/a", text: '"a"', type: "key" },
-                { path: "", text: ":", type: "" },
+                { path: "/a", text: ":", type: "" },
                 { path: "/a", text: "1", type: "changed" },
-                { path: "", text: "}", type: "" }
+                { path: "/a", text: "}", type: "" }
             ]);
         });
 
@@ -34,9 +34,9 @@ describe("PrettyLogs", () => {
             assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true, showDifferences: true }, prevObject), [
                 { path: "", text: "{", type: "" },
                 { path: "/a", text: '"a"', type: "key" },
-                { path: "", text: ":", type: "" },
+                { path: "/a", text: ":", type: "" },
                 { path: "/a", text: "1", type: "added" },
-                { path: "", text: "}", type: "" }
+                { path: "/a", text: "}", type: "" }
             ]);
         });
 
@@ -45,11 +45,11 @@ describe("PrettyLogs", () => {
             assert.deepEqual(parseMessage({ "a": { c: 2 } }, { highlightKeys: true, showDifferences: true }, prevObject), [
                 { path: "", text: "{", type: "" },
                 { path: "/a", text: '"a"', type: "key" },
-                { path: "", text: ":{", type: "" },
-                { path: "/a", text: '"c"', type: "key" },
-                { path: "", text: ":", type: "" },
+                { path: "/a", text: ":{", type: "" },
+                { path: "/a/c", text: '"c"', type: "key" },
+                { path: "/a/c", text: ":", type: "" },
                 { path: "/a/c", text: "2", type: "changed" },
-                { path: "", text: "}}", type: "" }
+                { path: "/a/c", text: "}}", type: "" }
             ]);
         });
 
@@ -58,11 +58,11 @@ describe("PrettyLogs", () => {
             assert.deepEqual(parseMessage({ "a": { c: 2 } }, { highlightKeys: true, showDifferences: true }, prevObject), [
                 { path: "", text: "{", type: "" },
                 { path: "/a", text: '"a"', type: "key" },
-                { path: "", text: ":{", type: "" },
-                { path: "/a", text: '"c"', type: "key" },
-                { path: "", text: ":", type: "" },
+                { path: "/a", text: ":{", type: "" },
+                { path: "/a/c", text: '"c"', type: "key" },
+                { path: "/a/c", text: ":", type: "" },
                 { path: "/a/c", text: "2", type: "added" },
-                { path: "", text: "}}", type: "" }
+                { path: "/a/c", text: "}}", type: "" }
             ]);
         });
 
@@ -71,40 +71,42 @@ describe("PrettyLogs", () => {
             assert.deepEqual(parseMessage({ e: "2", a: { c: { d: 1 } }}, { highlightKeys: true, showDifferences: true }, prevObject), [
                 { path: "", text: "{", type: "" },
                 { path: "/e", text: '"e"', type: "key" },
-                { path: "", text: ':"2",', type: "" },
+                { path: "/e", text: ':"2",', type: "" },
                 { path: "/a", text: '"a"', type: "key" },
-                { path: "", text: ":{", type: "" },
-                { path: "/a", text: '"c"', type: "key" },
-                { path: "", text: ":{", type: "" },
-                { path: "/a/c", text: '"d"', type: "key" },
-                { path: "", text: ":1}}}", type: "" }
+                { path: "/a", text: ":{", type: "" },
+                { path: "/a/c", text: '"c"', type: "key" },
+                { path: "/a/c", text: ":{", type: "" },
+                { path: "/a/c/d", text: '"d"', type: "key" },
+                { path: "/a/c/d", text: ":1}}}", type: "" }
             ]);
         });
 
         it("should highlight correctly multiple keys in deep object", () => {
             assert.deepEqual(parseMessage({ a: { c: [{ d: 1 }, { d: 2 }] }}, { highlightKeys: true }), [
-                { path: "", text: "{", type: "" },
-                { path: "/a", text: '"a"', type: "key" },
-                { path: "", text: ":{", type: "" },
-                { path: "/a", text: '"c"', type: "key" },
-                { path: "", text: ":[{", type: "" },
-                { path: "/a/c/0", text: "", type: "" },
-                { path: "/a/c/1", text: '"d"', type: "key" },
-                { path: "/a/c/0", text: "", type: "" },
-                { path: "", text: ":1},{", type: "" },
-                { path: "/a/c/0", text: "", type: "" },
-                { path: "/a/c/1", text: '"d"', type: "key" },
-                { path: "/a/c/0", text: "", type: "" },
-                { path: "", text: ":2}]}}", type: "" }
+                { text: "{", type: "", path: "" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ":{", type: "", path: "/a" },
+                { text: '"c"', type: "key", path: "/a/c" },
+                { text: ":[{", type: "", path: "/a/c" },
+                { text: '"d"', type: "key", path: "/a/c/0/d" },
+                { text: ":1},{", type: "", path: "/a/c/0/d" },
+                { text: '"d"', type: "key", path: "/a/c/0/d" },
+                { text: ":2}]}}", type: "", path: "/a/c/0/d" }
             ]);
         });
 
-        it.skip("should correctly highlight changes in modified object", () => {
+        it("should correctly highlight changes in modified object", () => {
             const prevObject = { a: 2, c: { e: 1 }};
-            assert.deepEqual(parseMessage({ a: 1, c: { e: 1 }}, { highlightKeys: false, showDifferences: true }, prevObject), [
-                { path: "", text: '{"a":', type: "" },
-                { path: "/a", text: "1", type: "changed" },
-                { path: "/a", text: ',"c":{"e":1}}', type: "" }
+            assert.deepEqual(parseMessage({ a: 1, c: { e: 1 }}, { highlightKeys: true, showDifferences: true }, prevObject), [
+                { text: "{", type: "", path: "" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ":", type: "", path: "/a" },
+                { text: "1", type: "changed", path: "/a" },
+                { text: ",", type: "", path: "/a" },
+                { text: '"c"', type: "key", path: "/c" },
+                { text: ":{", type: "", path: "/c" },
+                { text: '"e"', type: "key", path: "/c/e" },
+                { text: ":1}}", type: "", path: "/c/e" }
             ]);
         });
 
@@ -120,15 +122,9 @@ describe("PrettyLogs", () => {
                 c: [{ a: 6 }, { a: 7 }]
             };
             assert.deepEqual(parseMessage(current, { highlightKeys: false, showDifferences: true }, prevObject), [
-                { path: "", text: '{"a":', type: "" },
-                { path: "/a", text: "4", type: "changed" },
-                { path: "", text: ',"b":', type: "" },
-                { path: "/b", text: '"5"', type: "changed" },
-                { path: "", text: ',"c":[', type: "" },
-                { path: "/c/0", text: '{"a":6}', type: "added" },
-                { path: "", text: ",", type: "" },
-                { path: "/c/1", text: '{"a":7}', type: "added" },
-                { path: "", text: "]}", type: "" }
+                { text: '{"a":', type: "", path: "" },
+                { text: "4", type: "changed", path: "/a" },
+                { text: ',"b":"5","c":[{"a":6},{"a":7}]}', type: "", path: "/a" }
             ]);
         });
     });

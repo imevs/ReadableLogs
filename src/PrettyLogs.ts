@@ -47,54 +47,45 @@ function highlightPartsOfMessage<T extends DataObject>(
         type: "",
         path: "",
     }];
-    keys.forEach(key => {
-        const path = `/${key}`;
-        if (options.highlightKeys) {
-            res = highlightSubMessage(`"${key}"`, res, "key", false, path);
-        }
-        const subMessage = message[key];
-        if (options.showDifferences && prevMessage !== undefined) {
-
+    if (options.highlightKeys) {
+        res = highlightSubObjectKeys(message, res, "", options);
+        res.forEach((item, index) => {
+            if (item.path === "" && index > 0) {
+                item.path = res[index - 1]!.path;
+            }
+        });
+    }
+    if (options.showDifferences && prevMessage !== undefined) {
+        keys.forEach(key => {
+            const path = `/${key}`;
+            const subMessage = message[key];
+            if (subMessage === undefined) {
+                return;
+            }
             if (prevMessage[key] !== undefined) {
                 if (isDifferent(prevMessage[key], subMessage)) {
-                    if (typeof subMessage === "object" && subMessage !== null && subMessage !== undefined) {
+                    if (typeof subMessage === "object" && subMessage !== null) {
                         res = highlightSubObject(subMessage as DataObject, prevMessage[key] as DataObject, res, path, options);
                     } else {
-                        res = highlightSubMessage(serializeData(subMessage, options), res, "changed", true, path);
-                    }
-                } else {
-                    if (typeof subMessage === "object" && subMessage !== null && subMessage !== undefined) {
-                        res = highlightSubObject(subMessage as DataObject, undefined, res, path, options);
+                        res = highlightSubMessageData(serializeData(subMessage, options), res, "changed", path);
                     }
                 }
             } else {
-                if (subMessage !== undefined) {
-                    res = highlightSubMessage(serializeData(subMessage, options), res, "added", true, path);
-                }
+                res = highlightSubMessageData(serializeData(subMessage, options), res, "added", path);
             }
-        } else {
-            if (typeof subMessage === "object" && subMessage !== null && subMessage !== undefined) {
-                res = highlightSubObject(subMessage as DataObject, undefined, res, path, options);
-            }
-        }
-    });
+        });
+    }
     return res;
 }
 
 function highlightSubObject<T extends DataObject>(
-    subObject: T, prevObject: undefined | T, loggedParts: LOG, path: string, options: Options): LOG {
+    subObject: T, prevObject: T, loggedParts: LOG, path: string, options: Options): LOG {
     let res = [...loggedParts];
     Object.keys(subObject).forEach((key) => {
         const subObjectPart = subObject[key];
         const updatedPath = path + `/${key}`;
-        if (options.highlightKeys) {
-            res = highlightSubMessage(`"${key}"`, res, "key", false, path);
-        }
         if (prevObject === undefined) {
-            if (typeof subObjectPart === "object" && subObjectPart !== null) {
-                res = highlightSubObject(subObjectPart as DataObject,
-                    undefined, res, updatedPath, options);
-            }
+            return;
         } else {
             if (prevObject[key] !== undefined) {
                 if (isDifferent(subObjectPart, prevObject[key])) {
@@ -102,17 +93,39 @@ function highlightSubObject<T extends DataObject>(
                         res = highlightSubObject(subObjectPart as DataObject,
                             prevObject[key] as DataObject, res, updatedPath, options);
                     } else {
-                        res = highlightSubMessage(serializeData(subObjectPart, options),
-                            res, "changed", true, updatedPath);
+                        res = highlightSubMessageData(serializeData(subObjectPart, options),
+                            res, "changed", updatedPath);
                     }
                 }
             } else {
-                res = highlightSubMessage(serializeData(subObjectPart, options),
-                    res, "added", true, updatedPath);
+                res = highlightSubMessageData(serializeData(subObjectPart, options),
+                    res, "added", updatedPath);
             }
         }
     });
     return res;
+}
+
+function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts: LOG, path: string, options: Options): LOG {
+    let result = [...loggedParts];
+    Object.keys(subObject).forEach((key) => {
+        const newPath = path + `/${key}`;
+        const subMessageValue = subObject[key];
+        result = highlightSubMessage(`"${key}"`, result, "key", false, newPath);
+        if (typeof subMessageValue === "object" && subMessageValue !== null) {
+            result = highlightSubObjectKeys(subMessageValue as DataObject, result, newPath, options);
+        }
+    });
+    return result;
+}
+
+function highlightSubMessageData(
+    partMsgString: string,
+    loggedParts: LOG,
+    type: FormattingType,
+    path: string,
+): LOG {
+    return highlightSubMessage(partMsgString, loggedParts, type, true, path);
 }
 
 function highlightSubMessage(
@@ -123,9 +136,11 @@ function highlightSubMessage(
     path: string,
 ): LOG {
     const result = loggedParts.reduce((acc, item, i) => {
-        const parts = item.text.split(partMsgString);
+        const parts = item.text.split(partMsgString).filter(part => part !== "");
         const SPLIT_MESSAGE_LENGTH = 2;
-        if (parts.length >= SPLIT_MESSAGE_LENGTH && (!isDifference || path.startsWith(item.path))) {
+        if (!isDifference && parts.length >= SPLIT_MESSAGE_LENGTH ||
+            isDifference && path.startsWith(item.path) && parts.length === SPLIT_MESSAGE_LENGTH
+        ) {
             acc.push(
                 { text: parts[0] as string, type: "", path: item.path },
             );
@@ -133,7 +148,7 @@ function highlightSubMessage(
                 if (i > 0) {
                     acc.push(
                         { text: partMsgString, type: type, path: path },
-                        { text: part as string, type: "", path: item.path }
+                        { text: part as string, type: "", path: isDifference ? path : "" }
                     );
                 }
             });
@@ -142,9 +157,7 @@ function highlightSubMessage(
         }
         return acc;
     }, [] as LOG);
-    if (isDifference) {
-        console.debug({ path, partMsgString, loggedParts, result });
-    }
+    console.debug({ path, partMsgString, loggedParts, result });
     return result;
 }
 
