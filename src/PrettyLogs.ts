@@ -1,15 +1,4 @@
-export type LOG = {
-    text: string;
-    type: FormattingType;
-    path: string;
-}[];
-export type FormattingType = "key" | "added" | "changed" | "removed" | "";
-
-type ValueType = string | number | boolean | undefined | null;
-type DataObjectValues = ValueType | DataObject | DataObject[] | ValueType[];
-export interface DataObject {
-    [key: string]: DataObjectValues;
-}
+import { DataObject, DataObjectValues, FormattingType, LOG } from "./types";
 
 function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
     return JSON.stringify(obj1) !== JSON.stringify(obj2);
@@ -129,8 +118,8 @@ function highlightSubMessage(
             acc.push(
                 { text: parts[0] as string, type: "", path: item.path },
             );
-            parts.forEach((part, i) => {
-                if (i > 0) {
+            parts.forEach((part, j) => {
+                if (j > 0) {
                     acc.push(
                         { text: partMsgString, type: type, path: path },
                         { text: part as string, type: "", path: isDifference ? path : "" }
