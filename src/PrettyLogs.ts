@@ -1,3 +1,4 @@
+import { convertJsonToYaml } from "./yamlSupport";
 import { DataObject, DataObjectValues, FormattingType, LOG } from "./types";
 
 function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
@@ -135,9 +136,13 @@ function highlightSubMessage(
     return result;
 }
 
-export function parseMessage(data: DataObject, options?: { highlightKeys: boolean; formatMultiline?: boolean; }, prevMessage?: undefined): LOG;
-export function parseMessage(data: DataObject, options: Options, prevMessage: DataObject): LOG;
-export function parseMessage(data: DataObject, options: undefined | Options, prevMessage: undefined | DataObject): LOG {
+export function parseMessage(data: DataObject, options: undefined, prevMessage: undefined, yaml: true): LOG;
+export function parseMessage(data: DataObject, options?: { highlightKeys: boolean; formatMultiline?: boolean; }, prevMessage?: undefined, yaml?: false): LOG;
+export function parseMessage(data: DataObject, options: Options, prevMessage: DataObject, yaml?: false): LOG;
+export function parseMessage(data: DataObject, options: undefined | Options, prevMessage: undefined | DataObject, yaml: undefined | boolean): LOG {
+    if (yaml) {
+        return convertJsonToYaml(data);
+    }
     return highlightPartsOfMessage(data, prevMessage, options ?? { highlightKeys: true });
 }
 

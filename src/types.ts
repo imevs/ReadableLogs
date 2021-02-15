@@ -2,6 +2,7 @@ export type LOG = {
     text: string;
     type: FormattingType;
     path: string;
+    toString?: any;
 }[];
 export type FormattingType = "key" | "added" | "changed" | "removed" | "";
 
