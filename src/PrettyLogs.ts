@@ -10,12 +10,10 @@ function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
  */
 export type Options = {
     isDebug?: boolean;
-    highlightKeys: boolean;
     showDifferences?: true;
     formatMultiline?: false;
 } | {
     isDebug?: boolean;
-    highlightKeys: boolean;
     formatMultiline?: true;
     showDifferences?: false;
 };
@@ -35,14 +33,12 @@ function serializeData(message: DataObjectValues | DataObject, options: Options)
 
 function highlightPartsOfMessage<T extends DataObject>(message: T, prevMessage: undefined | T, options: Options): LOG {
     let res: LOG = [{ text: serializeData(message, options), type: "", path: "" }];
-    if (options.highlightKeys) {
-        res = highlightSubObjectKeys(message, res, "", options);
-        res.forEach((item, index) => {
-            if (item.path === "" && index > 0) {
-                item.path = res[index - 1]!.path;
-            }
-        });
-    }
+    res = highlightSubObjectKeys(message, res, "", options);
+    res.forEach((item, index) => {
+        if (item.path === "" && index > 0) {
+            item.path = res[index - 1]!.path;
+        }
+    });
     if (options.showDifferences && prevMessage !== undefined) {
         res = highlightSubObject(message, prevMessage, res, "", options);
         res = searchForRemovedData(message, prevMessage, res, "", options);
@@ -168,7 +164,7 @@ export function parseMessage(data: DataObject, options: undefined | Options, pre
     if (yaml) {
         return convertJsonToYaml(data);
     }
-    const result = highlightPartsOfMessage(data, prevMessage, options ?? { highlightKeys: true });
+    const result = highlightPartsOfMessage(data, prevMessage, options ?? { });
     if (options?.isDebug) {
         console.debug("parseMessage", result);
     }

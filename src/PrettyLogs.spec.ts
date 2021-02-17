@@ -20,7 +20,7 @@ describe("PrettyLogs", () => {
 
         it("should parse JSON object with changed attr", () => {
             const prevObject = { a: 2 };
-            assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true, showDifferences: true }, prevObject), [
+            assert.deepEqual(parseMessage({ "a": 1 }, { showDifferences: true }, prevObject), [
                 { path: "", text: "{", type: "" },
                 { path: "/a", text: '"a"', type: "key" },
                 { path: "/a", text: ":", type: "" },
@@ -31,7 +31,7 @@ describe("PrettyLogs", () => {
 
         it("should parse JSON object with added attr", () => {
             const prevObject = {};
-            assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true, showDifferences: true }, prevObject), [
+            assert.deepEqual(parseMessage({ "a": 1 }, { showDifferences: true }, prevObject), [
                 { text: "{", type: "", path: "" },
                 { text: '"a"', path: "/a", type: "added" },
                 { text: ":1}", path: "/a", type: "added" }
@@ -40,7 +40,7 @@ describe("PrettyLogs", () => {
 
         it("should parse JSON object with added items in array", () => {
             const prevObject = { a: [] };
-            const result = parseMessage({ a: [{b: 1}, { b: 2 }] }, { highlightKeys: true, showDifferences: true }, prevObject);
+            const result = parseMessage({ a: [{b: 1}, { b: 2 }] }, { showDifferences: true }, prevObject);
             assert.deepEqual(result, [
                 { text: "{", type: "", path: "" },
                 { text: '"a"', type: "key", path: "/a" },
@@ -54,7 +54,7 @@ describe("PrettyLogs", () => {
 
         it("should parse JSON object with changed sub object", () => {
             const prevObject = { a: { c: 1 }};
-            assert.deepEqual(parseMessage({ "a": { c: 2 } }, { highlightKeys: true, showDifferences: true }, prevObject), [
+            assert.deepEqual(parseMessage({ "a": { c: 2 } }, { showDifferences: true }, prevObject), [
                 { path: "", text: "{", type: "" },
                 { path: "/a", text: '"a"', type: "key" },
                 { path: "/a", text: ":{", type: "" },
@@ -67,7 +67,7 @@ describe("PrettyLogs", () => {
 
         it("should parse JSON object with added attribute in sub object", () => {
             const prevObject = { a: { }};
-            assert.deepEqual(parseMessage({ "a": { c: 2 } }, { highlightKeys: true, showDifferences: true }, prevObject), [
+            assert.deepEqual(parseMessage({ "a": { c: 2 } }, { showDifferences: true }, prevObject), [
                 { text: "{", type: "", path: "" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":{", type: "", path: "/a" },
@@ -78,7 +78,7 @@ describe("PrettyLogs", () => {
 
         it("should highlight correctly keys in not changed object", () => {
             const prevObject = { e: "2", a: { c: { d: 1 } }};
-            assert.deepEqual(parseMessage({ e: "2", a: { c: { d: 1 } }}, { highlightKeys: true, showDifferences: true }, prevObject), [
+            assert.deepEqual(parseMessage({ e: "2", a: { c: { d: 1 } }}, { showDifferences: true }, prevObject), [
                 { path: "", text: "{", type: "" },
                 { path: "/e", text: '"e"', type: "key" },
                 { path: "/e", text: ':"2",', type: "" },
@@ -107,7 +107,7 @@ describe("PrettyLogs", () => {
 
         it("should correctly highlight changes in modified object", () => {
             const prevObject = { a: 2, c: { e: 1 }};
-            assert.deepEqual(parseMessage({ a: 1, c: { e: 1 }}, { highlightKeys: true, showDifferences: true }, prevObject), [
+            assert.deepEqual(parseMessage({ a: 1, c: { e: 1 }}, { showDifferences: true }, prevObject), [
                 { text: "{", type: "", path: "" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":", type: "", path: "/a" },
@@ -131,10 +131,22 @@ describe("PrettyLogs", () => {
                 b: "5",
                 c: [{ a: 6 }, { a: 7 }]
             };
-            assert.deepEqual(parseMessage(current, { highlightKeys: false, showDifferences: true }, prevObject), [
-                { text: '{"a":', type: "", path: "" },
+            assert.deepEqual(parseMessage(current, { showDifferences: true }, prevObject), [
+                { text: "{", type: "", path: "" },
+                { text: '"a"', path: "/a", type: "key" },
+                { text: ":", type: "", path: "/a" },
                 { text: "4", type: "changed", path: "/a" },
-                { text: ',"b":"5","c":[{"a":6},{"a":7}]}', type: "", path: "/a" }
+                { text: ",", type: "", path: "/a" },
+                { text: '"b"', type: "key", path: "/b" },
+                { text: ":", type: "", path: "/b" },
+                { text: '"5"', type: "changed", path: "/b" },
+                { text: ",", type: "", path: "/b" },
+                { text: '"c"', type: "key", path: "/c" },
+                { text: ":[{", type: "", path: "/c" },
+                { text: '"a"', path: "/c/0/a", type: "added" },
+                { text: ":6},{", path: "/c/0/a", type: "added" },
+                { text: '"a"', path: "/c/1/a", type: "added" },
+                { text: ":7}]}", path: "/c/1/a", type: "added" }
             ]);
         });
 
@@ -146,7 +158,7 @@ describe("PrettyLogs", () => {
             const current = {
                 a: 4,
             };
-            const result = parseMessage(current, { highlightKeys: true, showDifferences: true }, prevObject);
+            const result = parseMessage(current, { showDifferences: true }, prevObject);
             assert.deepEqual(result, [
                 { text: "{", type: "", path: "" },
                 { text: '"a"', type: "key", path: "/a" },
@@ -158,7 +170,7 @@ describe("PrettyLogs", () => {
         it("should search for removed parts in deep object", () => {
             const prevObject = { b: { c: { a: 1 } } };
             const current = { b: { c: {} } };
-            const result = parseMessage(current, { highlightKeys: true, showDifferences: true }, prevObject);
+            const result = parseMessage(current, { showDifferences: true }, prevObject);
             console.log(result);
             assert.deepEqual(result, [
                 { text: "{", type: "", path: "" },
@@ -173,7 +185,7 @@ describe("PrettyLogs", () => {
         it("should search for removed parts in arrays", () => {
             const prevObject = { b: [{ a: 1}, {a: 2}] };
             const current = { b: [{ a: 1} ] };
-            const result = parseMessage(current, { highlightKeys: true, showDifferences: true }, prevObject);
+            const result = parseMessage(current, { showDifferences: true }, prevObject);
             console.log(result);
             assert.deepEqual(result, [
                 { text: "{", type: "", path: "" },
