@@ -32,11 +32,23 @@ describe("PrettyLogs", () => {
         it("should parse JSON object with added attr", () => {
             const prevObject = {};
             assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true, showDifferences: true }, prevObject), [
-                { path: "", text: "{", type: "" },
-                { path: "/a", text: '"a"', type: "key" },
-                { path: "/a", text: ":", type: "" },
-                { path: "/a", text: "1", type: "added" },
-                { path: "/a", text: "}", type: "" }
+                { text: "{", type: "", path: "" },
+                { text: '"a"', path: "/a", type: "added" },
+                { text: ":1}", path: "/a", type: "added" }
+            ]);
+        });
+
+        it("should parse JSON object with added items in array", () => {
+            const prevObject = { a: [] };
+            const result = parseMessage({ a: [{b: 1}, { b: 2 }] }, { highlightKeys: true, showDifferences: true }, prevObject);
+            assert.deepEqual(result, [
+                { text: "{", type: "", path: "" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ":[{", type: "", path: "/a" },
+                { text: '"b"', path: "/a/0/b", type: "added" },
+                { text: ":1},{", type: "added", path: "/a/0/b" },
+                { text: '"b"', path: "/a/1/b", type: "added" },
+                { text: ":2}]}", type: "added", path: "/a/1/b" }
             ]);
         });
 
@@ -56,13 +68,11 @@ describe("PrettyLogs", () => {
         it("should parse JSON object with added attribute in sub object", () => {
             const prevObject = { a: { }};
             assert.deepEqual(parseMessage({ "a": { c: 2 } }, { highlightKeys: true, showDifferences: true }, prevObject), [
-                { path: "", text: "{", type: "" },
-                { path: "/a", text: '"a"', type: "key" },
-                { path: "/a", text: ":{", type: "" },
-                { path: "/a/c", text: '"c"', type: "key" },
-                { path: "/a/c", text: ":", type: "" },
-                { path: "/a/c", text: "2", type: "added" },
-                { path: "/a/c", text: "}}", type: "" }
+                { text: "{", type: "", path: "" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ":{", type: "", path: "/a" },
+                { text: '"c"', path: "/a/c", type: "added" },
+                { text: ":2}}", path: "/a/c", type: "added" }
             ]);
         });
 
@@ -90,8 +100,8 @@ describe("PrettyLogs", () => {
                 { text: ":[{", type: "", path: "/a/c" },
                 { text: '"d"', type: "key", path: "/a/c/0/d" },
                 { text: ":1},{", type: "", path: "/a/c/0/d" },
-                { text: '"d"', type: "key", path: "/a/c/0/d" },
-                { text: ":2}]}}", type: "", path: "/a/c/0/d" }
+                { text: '"d"', type: "key", path: "/a/c/1/d" },
+                { text: ":2}]}}", type: "", path: "/a/c/1/d" }
             ]);
         });
 
@@ -130,6 +140,7 @@ describe("PrettyLogs", () => {
 
         it("should search for removed parts in simple object", () => {
             const prevObject = {
+                a: 4,
                 b: "2",
             };
             const current = {
@@ -139,9 +150,7 @@ describe("PrettyLogs", () => {
             assert.deepEqual(result, [
                 { text: "{", type: "", path: "" },
                 { text: '"a"', type: "key", path: "/a" },
-                { text: ":", type: "", path: "/a" },
-                { text: "4", type: "added", path: "/a" },
-                { text: "}", type: "", path: "/a" },
+                { text: ":4}", type: "", path: "/a" },
                 { type: "removed", path: "/b", text: '"2"' }
             ]);
         });

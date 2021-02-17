@@ -11,6 +11,6 @@ export const logs: { prevObject: DataObject; current: DataObject; } = {
         a: 4,
         b: "5",
         e: { b: "2" },
-        c: [{ a: 6}, { a: 7 }]
+        c: [{ a: 6, n: "2"}, { a: 7 }]
     },
 };
