@@ -1,91 +1,101 @@
-import { DataObject, DataObjectValues, FormattingType, LOG, ValueType } from "./types";
+import { DataObject, DataObjectValues, FormattingType, LOG, LogItem, ValueType } from "./types";
 
 const space = "  ";
 
-function wrapLog(s: string, nextLine = true) {
+function wrapLog(s: SafeString, path: string, newLine = true): LogItem {
     return {
-        text: s + (nextLine ? "\n" : ""),
+        text: s + (newLine ? "\n" : ""),
         type: "" as FormattingType,
-        path: "",
-        toString() {
-            return s;
-        }
+        path: path,
     };
 }
 
-function wrapKey(s: string, nextLine = false) {
+function wrapKey(s: SafeString, path: string, newLine: boolean): LogItem {
     return {
-        text: s + (nextLine ? "\n" : ""),
+        text: s + (newLine ? "\n" : ""),
         type: "key" as FormattingType,
-        path: "",
-        toString() {
-            return s;
-        }
+        path: path,
     };
 }
 
-function convert(obj: DataObjectValues, result: LOG) {
-    if (obj instanceof Array) {
-        convertArray(obj, result);
-    } else if (typeof obj == "string") {
-        result.push(wrapLog(normalizeString(obj)));
-    } else if (typeof obj == "boolean") {
-        result.push(wrapLog(obj ? "true" : "false"));
-    } else if (typeof obj == "number") {
-        result.push(wrapLog(obj.toString()));
-    } else if (typeof obj == "undefined" || obj === null) {
-        result.push(wrapLog("null"));
-    } else {
-        convertObject(obj, result);
-    }
-}
-
-function convertArray(obj: DataObject[] | ValueType[], result: LOG) {
-    if (obj.length === 0) {
-        result.push(wrapLog("[]"));
-    }
-    obj.forEach((item: DataObject | ValueType) => {
-        const recurse: LOG = [];
-        convert(item, recurse);
-        recurse.forEach((recurseItem, j) => {
-            result.push(wrapLog(j == 0 ? "- " : space, false));
-            result.push(recurseItem);
-        });
-    });
-}
-
-function convertObject(obj: DataObject, result: LOG) {
-    Object.keys(obj).forEach(k => {
-        const recurse: LOG = [];
-        const ele = obj[k];
-        convert(ele, recurse);
-        if (typeof ele == "string" || ele == null || typeof ele == "number" || typeof ele == "boolean") {
-            result.push(wrapKey(normalizeString(k) + ": "));
-            result.push(wrapLog("" + recurse[0]));
-        } else {
-            result.push(wrapKey(normalizeString(k) + ": ", true));
-            recurse.forEach(recurseItem => {
-                result.push(wrapLog(space, false));
-                result.push(recurseItem);
-            });
-        }
-    });
-}
-
-function normalizeString(str: string) {
+function normalizeString(str: string): SafeString {
     if (str.match(/^[\w]+$/)) {
-        return str;
+        return str as SafeString;
     } else {
         return '"' + escape(str)
             .replace(/%u/g, "\\u")
             .replace(/%U/g, "\\U")
             .replace(/%/g, "\\x")
-            + '"';
+            + '"' as SafeString;
     }
 }
 
-export const convertJsonToYaml = (obj: DataObject): LOG => {
+type SafeString = string & { __brand: "safestring"; };
+/* is needed to prevent cases of "" + {} */
+function concatString(...args: string[]): SafeString {
+    return args.join("") as SafeString;
+}
+
+function isSimpleType(ele: DataObjectValues): ele is ValueType {
+    return typeof ele == "string" || ele == null || typeof ele == "number" || typeof ele == "boolean";
+}
+
+export function convertJsonToYaml(obj: DataObjectValues, path = ""): LOG {
+    if (obj instanceof Array) {
+        return convertArray(obj, path);
+    } else if (isSimpleType(obj)) {
+        return [convertSimpleTypes(obj, path)];
+    } else {
+        return convertObject(obj, path);
+    }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
+function assertNull( _param: undefined | null ) { }
+function convertSimpleTypes(obj: ValueType, path: string): LogItem {
+    if (typeof obj == "string") {
+        return wrapLog(normalizeString(obj), path);
+    } else if (typeof obj == "boolean") {
+        return wrapLog(concatString(obj ? "true" : "false"), path);
+    } else if (typeof obj == "number") {
+        return wrapLog(concatString(obj.toString()), path);
+    }
+    assertNull(obj);
+    return wrapLog(concatString("null"), path);
+}
+
+function convertArray(obj: (DataObject | ValueType)[], path: string) {
+    if (obj.length === 0) {
+        return [wrapLog(concatString("[]"), path)];
+    }
+
     const result: LOG = [];
-    convert(obj, result);
+    obj.forEach((item, i) => {
+        const newPath = concatString(path, ".", i.toString());
+        convertJsonToYaml(item, newPath).forEach((recurseItem, j) => {
+            result.push(wrapLog(concatString((j == 0 ? "- " : space)), newPath, false));
+            result.push(recurseItem);
+        });
+    });
     return result;
-};
+}
+
+function convertObject(obj: DataObject, path: string) {
+    const result: LOG = [];
+    Object.keys(obj).forEach(k => {
+        const ele = obj[k];
+        const propName = normalizeString(k);
+        const newPath = concatString(path, ".", k);
+        if (isSimpleType(ele)) {
+            result.push(wrapKey(concatString(propName, ": "), newPath, false));
+            result.push(convertSimpleTypes(ele, newPath));
+        } else {
+            result.push(wrapKey(concatString(propName, ": "), newPath, true));
+            convertJsonToYaml(ele, newPath).forEach(recurseItem => {
+                result.push(wrapLog(concatString(space), recurseItem.path, false));
+                result.push(recurseItem);
+            });
+        }
+    });
+    return result;
+}

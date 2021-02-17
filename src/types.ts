@@ -1,9 +1,9 @@
-export type LOG = {
+export type LogItem = {
     text: string;
     type: FormattingType;
     path: string;
-    toString?: any;
-}[];
+};
+export type LOG = LogItem[];
 export type FormattingType = "key" | "added" | "changed" | "removed" | "";
 
 export type ValueType = string | number | boolean | undefined | null;
