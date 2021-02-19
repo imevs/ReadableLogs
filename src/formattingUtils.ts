@@ -14,13 +14,14 @@ function getColor(type: FormattingType): Color {
     return typeToColorMap[type];
 }
 
-export function formatForLoggingInBrowser(prefix: string, result: LOG): string[] {
+export function formatForLoggingInBrowser(prefix: string, result: LOG, prefixColors: string[] = []): string[] {
     return [
         prefix +
         result.filter(item => item.type !== "removed").map(item => "%c" + item.text).join("") +
         (result.filter(item => item.type === "removed").length > 0 ? "%c Removed: %c" : "") +
         result.filter(item => item.type === "removed").map(item => item.path + ":" + item.text)
             .join(",").split("/").join("."), // replace "/" path separator as it is treated by dev tools as part of url
+        ...prefixColors,
         ...result.filter(item => item.type !== "removed").map(item => item.type !== "" ? `color: ${getColor(item.type)};` : ""),
         ...(result.filter(item => item.type === "removed").length > 0 ? ["", `color: ${getColor("removed")};`] : [])
     ];

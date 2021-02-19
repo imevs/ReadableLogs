@@ -1,6 +1,6 @@
 import chai from "chai";
 const assert = chai.assert;
-import { parseMessage } from "./PrettyLogs";
+import { highlightJsonParts, parseMessage } from "./index";
 
 describe("PrettyLogs", () => {
     describe("parseMessage", () => {
@@ -11,7 +11,7 @@ describe("PrettyLogs", () => {
         });
 
         it("should parse JSON object", () => {
-            assert.deepEqual(parseMessage({ "a": 1 }, { highlightKeys: true }), [
+            assert.deepEqual(parseMessage({ "a": 1 }), [
                 { path: "", text: "{", type: "" },
                 { path: "/a", text: '"a"', type: "key" },
                 { path: "/a", text: ":1}", type: "" }
@@ -92,7 +92,7 @@ describe("PrettyLogs", () => {
         });
 
         it("should highlight correctly multiple keys in deep object", () => {
-            assert.deepEqual(parseMessage({ a: { c: [{ d: 1 }, { d: 2 }] }}, { highlightKeys: true }), [
+            assert.deepEqual(parseMessage({ a: { c: [{ d: 1 }, { d: 2 }] }}), [
                 { text: "{", type: "", path: "" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":{", type: "", path: "/a" },
@@ -194,6 +194,27 @@ describe("PrettyLogs", () => {
                 { text: '"a"', type: "key", path: "/b/0/a" },
                 { text: ":1}]}", type: "", path: "/b/0/a" },
                 { type: "removed", path: "/b/1", text: '{"a":2}' }
+            ]);
+        });
+    });
+
+    describe("highlightJsonParts", () => {
+        it("should highlight part of message by path", () => {
+            const result = highlightJsonParts({
+                a: { b: { c: 1 } },
+                d: 2,
+            }, "/a/b/c", { isDebug: true });
+
+            assert.deepEqual(result, [
+                { text: "{", type: "", path: "" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ":{", type: "", path: "/a" },
+                { text: '"b"', type: "key", path: "/a/b" },
+                { text: ":{", type: "", path: "/a/b" },
+                { text: '"c"', path: "/a/b/c", type: "added" },
+                { text: ":1}},", path: "/a/b/c", type: "added" },
+                { text: '"d"', type: "key", path: "/d" },
+                { text: ":2}", type: "", path: "/d" }
             ]);
         });
     });

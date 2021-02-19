@@ -1,4 +1,4 @@
-import { parseMessage } from "./PrettyLogs";
+import { parseMessage } from "./index";
 import { logs } from "./testData";
 import {
     highlightTextInHtml,

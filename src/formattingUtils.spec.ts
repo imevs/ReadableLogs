@@ -1,6 +1,6 @@
 import chai from "chai";
 import { formatForLoggingInBrowser } from "./formattingUtils";
-import { parseMessage } from "./PrettyLogs";
+import { parseMessage } from "./index";
 
 const assert = chai.assert;
 

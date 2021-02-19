@@ -1,5 +1,4 @@
-import { convertJsonToYaml } from "./yamlSupport";
-import { DataObject, DataObjectValues, FormattingType, LOG } from "./types";
+import { DataObject, DataObjectValues, LOG } from "./types";
 
 function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
     return JSON.stringify(obj1) !== JSON.stringify(obj2);
@@ -23,7 +22,7 @@ function getNewPath(oldPath: string, key: string) {
     return oldPath + pathSeparator + key;
 }
 
-function serializeData(message: DataObjectValues | DataObject, options: Options) {
+function serializeData(message: DataObjectValues, options: Options) {
     if (options.formatMultiline) {
         return JSON.stringify(message, null, "  ");
     } else {
@@ -31,7 +30,7 @@ function serializeData(message: DataObjectValues | DataObject, options: Options)
     }
 }
 
-function highlightPartsOfMessage<T extends DataObject>(message: T, prevMessage: undefined | T, options: Options): LOG {
+export function highlightPartsOfMessage<T extends DataObject>(message: T, prevMessage: undefined | T, options: Options): LOG {
     let res: LOG = [{ text: serializeData(message, options), type: "", path: "" }];
     res = highlightSubObjectKeys(message, res, "", options);
     res.forEach((item, index) => {
@@ -44,6 +43,11 @@ function highlightPartsOfMessage<T extends DataObject>(message: T, prevMessage: 
         res = searchForRemovedData(message, prevMessage, res, "", options);
     }
     return res;
+}
+
+export function highlightPartByPath<T extends DataObject>(message: T, path: string, options: Options): LOG {
+    const res = highlightPartsOfMessage(message, undefined, options);
+    return highlightAddedSubMessage(res, path, options);
 }
 
 function highlightSubObject<T extends DataObject>(
@@ -66,8 +70,7 @@ function highlightSubObject<T extends DataObject>(
                     }
                 }
             } else {
-                res = highlightSubMessage(
-                    serializeData(subObjectPart, options), res, "added", true, updatedPath, options);
+                res = highlightAddedSubMessage(res, updatedPath, options);
             }
         }
     });
@@ -106,28 +109,36 @@ function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts:
     return result;
 }
 
+function highlightAddedSubMessage(
+    loggedParts: LOG,
+    path: string,
+    options: Options
+): LOG {
+    const result = loggedParts.reduce((acc, item) => {
+        if (item.path.startsWith(path)) {
+            acc.push({ text: item.text, path: item.path, type: "added" });
+        } else {
+            acc.push(item);
+        }
+        return acc;
+    }, [] as LOG);
+    if (options.isDebug) {
+        console.debug("highlightAddedSubMessage", { path, loggedParts, result });
+    }
+    return result;
+}
+
 function highlightSubMessage(
     partMsgString: string,
     loggedParts: LOG,
-    type: FormattingType,
+    type: "key" | "changed" | "removed" | "",
     isDifference: boolean,
     path: string,
     options: Options
 ): LOG {
     const result = loggedParts.reduce((acc, item) => {
-        const parts = item.text.split(partMsgString).filter(part => part !== "");
         const SPLIT_MESSAGE_LENGTH = 2;
-        if (type === "added") {
-            if (item.path.startsWith(path)) {
-                acc.push({
-                    text: item.text,
-                    path: item.path,
-                    type: type,
-                });
-                return acc;
-            }
-        }
-
+        const parts = item.text.split(partMsgString).filter(part => part !== "");
         if (!isDifference && parts.length >= SPLIT_MESSAGE_LENGTH ||
             isDifference && path.startsWith(item.path) && parts.length === SPLIT_MESSAGE_LENGTH
         ) {
@@ -152,21 +163,6 @@ function highlightSubMessage(
     }, [] as LOG);
     if (options.isDebug) {
         console.debug("highlightSubMessage", { path, type, partMsgString, loggedParts, result });
-    }
-
-    return result;
-}
-
-export function parseMessage(data: DataObject, options: undefined, prevMessage: undefined, yaml: true): LOG;
-export function parseMessage(data: DataObject, options?: { highlightKeys: boolean; formatMultiline?: boolean; }, prevMessage?: undefined, yaml?: false): LOG;
-export function parseMessage(data: DataObject, options: Options, prevMessage: DataObject, yaml?: false): LOG;
-export function parseMessage(data: DataObject, options: undefined | Options, prevMessage: undefined | DataObject, yaml: undefined | boolean): LOG {
-    if (yaml) {
-        return convertJsonToYaml(data);
-    }
-    const result = highlightPartsOfMessage(data, prevMessage, options ?? { });
-    if (options?.isDebug) {
-        console.debug("parseMessage", result);
     }
     return result;
 }
