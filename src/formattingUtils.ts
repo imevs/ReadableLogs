@@ -1,9 +1,10 @@
 import { FormattingType, LOG } from "./types";
 
-type Color = "red" | "blue" | "pink" | "orange" | "green" | "";
+type Color = "red" | "blue" | "pink" | "orange" | "green" | "lightgreen" | "";
 
-const typeToColorMap: { [K in FormattingType]: Color; } = {
+const typeToColorMap: Record<FormattingType, Color> = {
     "": "",
+    value: "lightgreen",
     key: "orange",
     added: "blue",
     changed: "green",
@@ -14,7 +15,11 @@ function getColor(type: FormattingType): Color {
     return typeToColorMap[type];
 }
 
-export function formatForLoggingInBrowser(prefix: string, result: LOG, prefixColors: string[] = []): string[] {
+export function formatForLoggingInBrowser(
+    prefix: string, result: LOG, prefixColors: string[] = [],
+    typeToStyleMap: Record<FormattingType, string> = typeToColorMap,
+): string[] {
+    const getStyle = (type: FormattingType) => typeToStyleMap[type];
     return [
         prefix +
         result.filter(item => item.type !== "removed").map(item => "%c" + item.text).join("") +
@@ -22,8 +27,8 @@ export function formatForLoggingInBrowser(prefix: string, result: LOG, prefixCol
         result.filter(item => item.type === "removed").map(item => item.path + ":" + item.text)
             .join(",").split("/").join("."), // replace "/" path separator as it is treated by dev tools as part of url
         ...prefixColors,
-        ...result.filter(item => item.type !== "removed").map(item => item.type !== "" ? `color: ${getColor(item.type)};` : ""),
-        ...(result.filter(item => item.type === "removed").length > 0 ? ["", `color: ${getColor("removed")};`] : [])
+        ...result.filter(item => item.type !== "removed").map(item => item.type !== "" ? `color: ${getStyle(item.type)};` : ""),
+        ...(result.filter(item => item.type === "removed").length > 0 ? ["", `color: ${getStyle("removed")};`] : [])
     ];
 }
 

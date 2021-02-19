@@ -4,7 +4,7 @@ export type LogItem = {
     path: string;
 };
 export type LOG = LogItem[];
-export type FormattingType = "key" | "added" | "changed" | "removed" | "";
+export type FormattingType = "key" | "added" | "changed" | "removed" | "value" | "";
 
 export type ValueType = string | number | boolean | undefined | null;
 export type DataObjectValues = ValueType | DataObject | DataObject[] | ValueType[];
