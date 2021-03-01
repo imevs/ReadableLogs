@@ -32,7 +32,7 @@ export function parseMessage(
  * @param path format /a/b/c
  * @param options
  */
-export function highlightJsonParts(data: DataObject, path: string, options: { formatMultiline?: boolean, isDebug?: boolean; } = {}) {
+export function highlightJsonParts(data: DataObject, path: string, options: { formatMultiline?: boolean; isDebug?: boolean; } = {}) {
     const result = highlightPartByPath(data, path, options);
     if (options?.isDebug) {
         console.debug("highlightJsonParts", result);

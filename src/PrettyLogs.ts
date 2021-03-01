@@ -167,3 +167,53 @@ function highlightSubMessage(
     return result;
 }
 
+function highlightErrorInMessage(
+    loggedParts: LOG,
+    path: string,
+    options: Options,
+    comment: string,
+): LOG {
+    const numberOfParts = loggedParts.filter(part => part.path.startsWith(path)).length;
+    let i = 0;
+    const result = loggedParts.reduce((acc, item) => {
+        if (item.path.startsWith(path)) {
+            i++;
+            if (comment !== "" && numberOfParts === i) {
+                if (options.formatMultiline) {
+                    const separator = "\n";
+                    const splitText = item.text.split(separator);
+                    acc.push({ text: splitText[0]!, path: item.path, type: "error" });
+                    acc.push({ text: comment + separator, path: item.path, type: "commented" });
+                    acc.push({ text: separator + splitText.slice(1).join(separator), path: item.path, type: "error" });
+                } else {
+                    acc.push({ text: item.text, path: item.path, type: "error" });
+                    acc.push({ text: comment, path: item.path, type: "commented" });
+                }
+                return acc;
+            }
+            acc.push({ text: item.text, path: item.path, type: "error" });
+        } else {
+            acc.push(item);
+        }
+        return acc;
+    }, [] as LOG);
+    if (options.isDebug) {
+        console.debug("highlightErrorInMessage", { path, loggedParts, result });
+    }
+    return result;
+}
+
+export function highlightErrorsInJson(data: DataObject, errors: {
+    path: string; text: string;
+}[], options: { formatMultiline?: boolean, isDebug?: boolean; } = {}): LOG {
+    let result = highlightPartsOfMessage(data, undefined, options);
+    errors.forEach(error => {
+        result = highlightErrorInMessage(result, error.path, options,
+            options.formatMultiline ? " // " + error.text : ` /* ${error.text} */ `);
+    });
+
+    if (options?.isDebug) {
+        console.debug("highlightJsonParts", result);
+    }
+    return result;
+}

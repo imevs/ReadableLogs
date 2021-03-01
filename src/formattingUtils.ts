@@ -9,6 +9,8 @@ const typeToColorMap: Record<FormattingType, Color> = {
     added: "blue",
     changed: "green",
     removed: "red",
+    error: "red",
+    commented: "green",
 };
 
 function getColor(type: FormattingType): Color {

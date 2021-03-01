@@ -1,6 +1,6 @@
 import chai from "chai";
 const assert = chai.assert;
-import { highlightJsonParts, parseMessage } from "./index";
+import { highlightErrorsInJson, highlightJsonParts, parseMessage } from "./index";
 
 describe("PrettyLogs", () => {
     describe("parseMessage", () => {
@@ -215,6 +215,50 @@ describe("PrettyLogs", () => {
                 { text: ":1}},", path: "/a/b/c", type: "added" },
                 { text: '"d"', type: "key", path: "/d" },
                 { text: ":2}", type: "", path: "/d" }
+            ]);
+        });
+    });
+
+    describe("highlightErrorsInJson", () => {
+        it("should add comments in multiline JSON", () => {
+            const result = highlightErrorsInJson({ a: { b: { c: 2, d: 3 }}}, [
+                { text: "should be string", path: "/a/b/c" },
+                { text: "should be boolean", path: "/a/b/d" }
+            ], { formatMultiline: true, isDebug: false });
+            assert.deepEqual(result, [
+                { text: "{\n  ", type: "", path: "" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ": {\n    ", type: "", path: "/a" },
+                { text: '"b"', type: "key", path: "/a/b" },
+                { text: ": {\n      ", type: "", path: "/a/b" },
+                { text: '"c"', path: "/a/b/c", type: "error" },
+                { text: ": 2,", path: "/a/b/c", type: "error" },
+                { text: " // should be string\n", path: "/a/b/c", type: "commented" },
+                { text: "\n      ", path: "/a/b/c", type: "error" },
+                { text: '"d"', path: "/a/b/d", type: "error" },
+                { text: ": 3", path: "/a/b/d", type: "error" },
+                { text: " // should be boolean\n", path: "/a/b/d", type: "commented" },
+                { text: "\n    }\n  }\n}", path: "/a/b/d", type: "error" }
+            ]);
+        });
+
+        it("should add comments in not multiline JSON", () => {
+            const result = highlightErrorsInJson({ a: { b: { c: 2, d: 3 }}}, [
+                { text: "should be string", path: "/a/b/c" },
+                { text: "should be boolean", path: "/a/b/d" }
+            ], { formatMultiline: false, isDebug: false });
+            assert.deepEqual(result, [
+                { text: "{", type: "", path: "" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ":{", type: "", path: "/a" },
+                { text: '"b"', type: "key", path: "/a/b" },
+                { text: ":{", type: "", path: "/a/b" },
+                { text: '"c"', path: "/a/b/c", type: "error" },
+                { text: ":2,", path: "/a/b/c", type: "error" },
+                { text: " /* should be string */ ", path: "/a/b/c", type: "commented" },
+                { text: '"d"', path: "/a/b/d", type: "error" },
+                { text: ":3}}}", path: "/a/b/d", type: "error" },
+                { text: " /* should be boolean */ ", path: "/a/b/d", type: "commented" }
             ]);
         });
     });
