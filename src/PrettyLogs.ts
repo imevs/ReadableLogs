@@ -32,7 +32,7 @@ function serializeData(message: DataObjectValues, options: Options) {
 
 export function highlightPartsOfMessage<T extends DataObject>(message: T, prevMessage: undefined | T, options: Options): LOG {
     let res: LOG = [{ text: serializeData(message, options), type: "", path: "" }];
-    res = highlightSubObjectKeys(message, res, "", options);
+    res = highlightJSONSyntax(message, res, "", options);
     res.forEach((item, index) => {
         if (item.path === "" && index > 0) {
             item.path = res[index - 1]!.path;
@@ -96,14 +96,17 @@ function searchForRemovedData<T extends DataObject>(
     return res;
 }
 
-function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts: LOG, path: string, options: Options): LOG {
+function highlightJSONSyntax<T extends DataObject>(subObject: T, loggedParts: LOG, path: string, options: Options): LOG {
     let result = [...loggedParts];
     Object.keys(subObject).forEach((key) => {
         const newPath = getNewPath(path, key);
         const subMessageValue = subObject[key];
         result = highlightSubMessage(`"${key}"`, result, "key", false, newPath, options);
         if (typeof subMessageValue === "object" && subMessageValue !== null) {
-            result = highlightSubObjectKeys(subMessageValue as DataObject, result, newPath, options);
+            result = highlightJSONSyntax(subMessageValue as DataObject, result, newPath, options);
+        } else {
+            result = highlightSubMessage(
+                serializeData(subMessageValue, options), result, "value", false, newPath, options);
         }
     });
     return result;
@@ -115,7 +118,7 @@ function highlightAddedSubMessage(
     options: Options
 ): LOG {
     const result = loggedParts.reduce((acc, item) => {
-        if (item.path.startsWith(path)) {
+        if (item.path.startsWith(path) && item.type !== "") {
             acc.push({ text: item.text, path: item.path, type: "added" });
         } else {
             acc.push(item);
@@ -131,7 +134,7 @@ function highlightAddedSubMessage(
 function highlightSubMessage(
     partMsgString: string,
     loggedParts: LOG,
-    type: "key" | "changed" | "removed" | "",
+    type: "value" | "key" | "changed" | "removed" | "",
     isDifference: boolean,
     path: string,
     options: Options
