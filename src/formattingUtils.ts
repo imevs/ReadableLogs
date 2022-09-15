@@ -68,7 +68,6 @@ export function safeParse(data: any) {
     try {
         return data === "" ? undefined : JSON.parse(data);
     } catch (ex) {
-        console.error("Cannot parse JSON", data, ex);
         return undefined;
     }
 }
