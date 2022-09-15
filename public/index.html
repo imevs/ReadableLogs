@@ -15,3 +15,17 @@
 
 <div id="error" style="color: red;"></div>
 <button id="run">Run!</button>
+
+<script>
+    /* For demo of userScripts/logAndFormatWebSocketJSON.js - after installing user script it will JSON messages in WS */
+    const wsClient = new WebSocket('wss://ws.postman-echo.com/raw')
+    wsClient.onopen = function () {
+        wsClient.send('WS opens');
+        wsClient.onmessage = function (event) {}
+
+        setInterval(() => {
+            const key = Math.round(Math.random() * 10);
+            wsClient.send(JSON.stringify({ "a": Math.round(Math.random() * 10), ["b" + key]: Math.round(Math.random() * 10) }));
+        }, 2000);
+    }
+</script>
