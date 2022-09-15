@@ -4,6 +4,7 @@ import { DataObject, DataObjectValues } from "./types";
 type FormattingOptions = {
     mode: "overrideConsole" | "overrideWebsocket";
     replace: boolean;
+    maxMessageSize: number;
     /**
      * Adds prefix for logged value, useful for filtering only needed entries in console
      */
@@ -42,6 +43,7 @@ function enhanceLogger(logFunction: typeof console.log, options: FormattingOptio
 }
 
 const formattingOptions: FormattingOptions = {
+    maxMessageSize: passedFormattingOptions?.maxMessageSize ?? 1000,
     replace: passedFormattingOptions?.replace ?? false,
     mode: passedFormattingOptions?.mode ?? "overrideConsole",
     getMessageType: passedFormattingOptions?.getMessageType ?? (logPart => Object.keys(logPart)[0]),
@@ -62,11 +64,16 @@ if (formattingOptions.mode === "overrideConsole") {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         wsHook.before = function (data: string) {
+            const prefix = "outgoing: ";
+            if (data.length > formattingOptions.maxMessageSize) {
+                console.log(prefix, data);
+                return data;
+            }
             const json = safeParse(data);
             if (json !== undefined) {
                 enhanceLogger(
                     console.log.bind(console),
-                    { ...formattingOptions, prefix: "outgoing: ", replace: true },
+                    { ...formattingOptions, prefix: prefix, replace: true },
                     outgoingMessagesHistory,
                     "outgoing",
                 )([json]);
@@ -76,6 +83,12 @@ if (formattingOptions.mode === "overrideConsole") {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         wsHook.after = function (data: { data: string; }) {
+            const prefix = formattingOptions.prefix;
+
+            if (data.data.length > formattingOptions.maxMessageSize) {
+                console.log(prefix, data);
+                return data;
+            }
             const json = safeParse(data.data);
             if (json !== undefined) {
                 enhanceLogger(
