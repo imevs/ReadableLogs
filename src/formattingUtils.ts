@@ -19,21 +19,25 @@ function getColor(type: FormattingType): Color {
 
 /**
  * Formats output for console.log
+ * Returns data for console log with specified color, uses next browser API
+ *      https://developer.mozilla.org/en-US/docs/Web/API/console#outputting_text_to_the_console
  */
 export function formatForLoggingInBrowser(
     prefix: string, result: LogItem[], prefixColors: string[] = [],
     typeToStyleMap: Record<FormattingType, string> = typeToColorMap,
 ): string[] {
     const getStyle = (type: FormattingType) => typeToStyleMap[type];
+    const removedItems = result.filter(item => item.type === "removed");
+    const notRemovedItems = result.filter(item => item.type !== "removed");
     return [
         prefix +
-        result.filter(item => item.type !== "removed").map(item => "%c" + item.text).join("") +
-        (result.filter(item => item.type === "removed").length > 0 ? "%c Removed: %c" : "") +
-        result.filter(item => item.type === "removed").map(item => item.path + ":" + item.text)
+        notRemovedItems.map(item => "%c" + item.text).join("") +
+        (removedItems.length > 0 ? "%c Removed: %c" : "") +
+        removedItems.map(item => item.path + ":" + item.text)
             .join(",").split("/").join("."), // replace "/" path separator as it is treated by dev tools as part of url
         ...prefixColors,
-        ...result.filter(item => item.type !== "removed").map(item => item.type !== "" ? `color: ${getStyle(item.type)};` : ""),
-        ...(result.filter(item => item.type === "removed").length > 0 ? ["", `color: ${getStyle("removed")};`] : [])
+        ...notRemovedItems.map(item => item.type !== "" ? `color: ${getStyle(item.type)};` : ""),
+        ...(removedItems.length > 0 ? ["", `color: ${getStyle("removed")};`] : [])
     ];
 }
 
