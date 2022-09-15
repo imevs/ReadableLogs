@@ -54,6 +54,7 @@ export function removeHtmlEntities(content: string): string {
 export function highlightTextInHtml(messages: LogItem[] | LogItem[][]): string {
     const formattedMessages = ((Array.isArray(messages[0]) ? messages : [messages]) as LogItem[][]).map(message => {
         return message
+            .filter(part => part.type !== "removed") /* TODO: show removed part separately to do not break structure of JSON */
             .map(part => `<span style="color: ${getColor(part.type)}">${formatMultiLineTextAsHTML(part.text)}</span>`)
             .join("");
     });
@@ -61,4 +62,13 @@ export function highlightTextInHtml(messages: LogItem[] | LogItem[][]): string {
         return formattedMessages[0]!;
     }
     return "[<br>" + formattedMessages.join(",<br>") + "<br>]";
+}
+
+export function safeParse(data: any) {
+    try {
+        return data === "" ? undefined : JSON.parse(data);
+    } catch (ex) {
+        console.error("Cannot parse JSON", data, ex);
+        return undefined;
+    }
 }

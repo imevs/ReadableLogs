@@ -1,4 +1,4 @@
-import { highlightPartsOfMessage, formatForLoggingInBrowser } from "./index";
+import { highlightPartsOfMessage, formatForLoggingInBrowser, safeParse } from "./index";
 import { DataObject, DataObjectValues } from "./types";
 
 type FormattingOptions = {
@@ -62,8 +62,7 @@ if (formattingOptions.mode === "overrideConsole") {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         wsHook.before = function (data: string) {
-            let json = undefined;
-            try { json = JSON.parse(data); } catch (ex) { /* not a json message */ }
+            const json = safeParse(data);
             if (json !== undefined) {
                 enhanceLogger(
                     console.log.bind(console),
@@ -77,8 +76,7 @@ if (formattingOptions.mode === "overrideConsole") {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         wsHook.after = function (data: { data: string; }) {
-            let json = undefined;
-            try { json = JSON.parse(data.data); } catch (ex) { /* not a json message */ }
+            const json = safeParse(data.data);
             if (json !== undefined) {
                 enhanceLogger(
                     console.log.bind(console),

@@ -1,4 +1,4 @@
-import { parseMessage } from "./index";
+import { parseMessage, safeParse } from "./index";
 import { logs } from "./testData";
 import {
     highlightTextInHtml,
@@ -14,10 +14,10 @@ function executeFormatter(data: typeof logs) {
     const result = parseMessage(data.current, { showDiffWithObject: data.prevObject });
     console.info(...formatForLoggingInBrowser("Formatted message 2: ", result));
 
-    const result2 = parseMessage(data.current, { multiline: true });
+    const result2 = parseMessage(data.current, data.prevObject ? { showDiffWithObject: data.prevObject } : { multiline: true });
     document.querySelector("#demo_input_currentMessage")!.innerHTML = highlightTextInHtml(result2);
-    document.querySelector("#demo_input_prevMessage")!.innerHTML =
-        formatMultiLineTextAsHTML(JSON.stringify(data.prevObject ?? {}, null, "  "));
+    document.querySelector("#demo_input_prevMessage")!.innerHTML = data.prevObject ?
+        formatMultiLineTextAsHTML(JSON.stringify(data.prevObject, null, "  ")) : "";
 }
 executeFormatter(logs);
 
@@ -29,8 +29,8 @@ document.querySelector("#run")!.addEventListener("click", () => {
         removeHtmlEntities(document.querySelector("#demo_input_prevMessage")!.textContent ?? "");
     try {
         executeFormatter({
-            prevObject: JSON.parse(prevMessage),
-            current: JSON.parse(currentLoggableMessage),
+            prevObject: safeParse(prevMessage),
+            current: safeParse(currentLoggableMessage),
         });
         document.querySelector("#error")!.innerHTML = "";
     } catch (ex) {
