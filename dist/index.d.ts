@@ -1,2 +1,17 @@
+import { DataObject, LogItem } from "./types";
 export * from "./PrettyLogs";
 export * from "./formattingUtils";
+export declare type ApiOptions = {
+    yaml?: true;
+} | {
+    isDebug?: true;
+    showDiffWithObject?: DataObject;
+} | {
+    isDebug?: true;
+    multiline?: true;
+};
+export declare function parseMessage(data: DataObject, options?: ApiOptions): LogItem[];
+export declare function highlightJsonParts(data: DataObject, path: string, options?: {
+    formatMultiline?: boolean;
+    isDebug?: boolean;
+}): LogItem[];

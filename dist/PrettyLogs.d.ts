@@ -1,19 +1,20 @@
-export declare type LOG = {
-    text: string;
-    type: FormattingType;
-    path: string;
-}[];
-export declare type FormattingType = "key" | "added" | "changed" | "removed" | "";
-declare type ValueType = string | number | boolean | undefined | null;
-declare type DataObjectValues = ValueType | DataObject | DataObject[] | ValueType[];
-export interface DataObject {
-    [key: string]: DataObjectValues;
-}
+import { DataObject, LogItem } from "./types";
 export declare type Options = {
-    highlightKeys: boolean;
-    showDifferences?: boolean;
-    formatMultiline?: boolean;
+    isDebug?: boolean;
+    showDiffWithObject?: DataObject;
+    multiline?: false;
+} | {
+    isDebug?: boolean;
+    multiline?: true;
+    showDiffWithObject?: undefined;
 };
-export declare function parseMessage(data: DataObject, options: Omit<Options, "showDifferences">, prevMessage?: undefined): LOG;
-export declare function parseMessage(data: DataObject, options: Options, prevMessage: DataObject): LOG;
-export {};
+export declare const pathSeparator = "/";
+export declare function highlightPartsOfMessage<T extends DataObject>(message: T, options: Options): LogItem[];
+export declare function highlightPartByPath<T extends DataObject>(message: T, path: string, options: Options): LogItem[];
+export declare function highlightErrorsInJson(data: DataObject, errors: {
+    path: string;
+    text: string;
+}[], options?: {
+    formatMultiline?: boolean;
+    isDebug?: boolean;
+}): LogItem[];

@@ -4,17 +4,29 @@ define(["require", "exports"], function (require, exports) {
     exports.highlightTextInHtml = exports.removeHtmlEntities = exports.formatMultiLineTextAsHTML = exports.formatForLoggingInBrowser = void 0;
     const typeToColorMap = {
         "": "",
-        key: "red",
+        value: "lightgreen",
+        key: "orange",
         added: "blue",
         changed: "green",
-        removed: "orange",
+        removed: "red",
+        error: "red",
+        commented: "green",
     };
     function getColor(type) {
         return typeToColorMap[type];
     }
-    function formatForLoggingInBrowser(prefix, result) {
-        return [prefix + result.map(item => "%c" + item.text).join(""),
-            ...(result.map(item => `color: ${getColor(item.type)};`))];
+    function formatForLoggingInBrowser(prefix, result, prefixColors = [], typeToStyleMap = typeToColorMap) {
+        const getStyle = (type) => typeToStyleMap[type];
+        return [
+            prefix +
+                result.filter(item => item.type !== "removed").map(item => "%c" + item.text).join("") +
+                (result.filter(item => item.type === "removed").length > 0 ? "%c Removed: %c" : "") +
+                result.filter(item => item.type === "removed").map(item => item.path + ":" + item.text)
+                    .join(",").split("/").join("."),
+            ...prefixColors,
+            ...result.filter(item => item.type !== "removed").map(item => item.type !== "" ? `color: ${getStyle(item.type)};` : ""),
+            ...(result.filter(item => item.type === "removed").length > 0 ? ["", `color: ${getStyle("removed")};`] : [])
+        ];
     }
     exports.formatForLoggingInBrowser = formatForLoggingInBrowser;
     function formatMultiLineTextAsHTML(content) {
