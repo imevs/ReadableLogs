@@ -1,20 +1,20 @@
-import { DataObject, DataObjectValues, LOG } from "./types";
+import { DataObject, DataObjectValues, LogItem } from "./types";
 
 function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
     return JSON.stringify(obj1) !== JSON.stringify(obj2);
 }
 
-/**
- * It is not possible enable both showDifferences and formatMultiline
- */
 export type Options = {
     isDebug?: boolean;
-    showDifferences?: true;
-    formatMultiline?: false;
+    showDiffWithObject?: DataObject;
+    /**
+     * It is not possible enable both showDiffWithObject and formatMultiline
+     */
+    multiline?: false;
 } | {
     isDebug?: boolean;
-    formatMultiline?: true;
-    showDifferences?: false;
+    multiline?: true;
+    showDiffWithObject?: undefined;
 };
 
 export const pathSeparator = "/";
@@ -23,35 +23,45 @@ function getNewPath(oldPath: string, key: string) {
 }
 
 function serializeData(message: DataObjectValues, options: Options) {
-    if (options.formatMultiline) {
+    if (options.multiline) {
         return JSON.stringify(message, null, "  ");
     } else {
         return JSON.stringify(message);
     }
 }
 
-export function highlightPartsOfMessage<T extends DataObject>(message: T, prevMessage: undefined | T, options: Options): LOG {
-    let res: LOG = [{ text: serializeData(message, options), type: "", path: "" }];
+/**
+ * Method analyzes provided message and builds its representation as array of sub-elements of different types
+ *
+ * Example:
+ *  { "a": 1 } -> [
+ *                 { path: "", text: "{", type: "" },
+ *                 { path: "/a", text: '"a"', type: "key" },
+ *                 { path: "/a", text: ":1}", type: "" }
+ *             ]
+ **/
+export function highlightPartsOfMessage<T extends DataObject>(message: T, options: Options): LogItem[] {
+    let res: LogItem[] = [{ text: serializeData(message, options), type: "", path: "" }];
     res = highlightSubObjectKeys(message, res, "", options);
     res.forEach((item, index) => {
         if (item.path === "" && index > 0) {
             item.path = res[index - 1]!.path;
         }
     });
-    if (options.showDifferences && prevMessage !== undefined) {
-        res = highlightSubObject(message, prevMessage, res, "", options);
-        res = searchForRemovedData(message, prevMessage, res, "", options);
+    if (options.showDiffWithObject !== undefined) {
+        res = highlightSubObject(message, options.showDiffWithObject, res, "", options);
+        res = searchForRemovedData(message, options.showDiffWithObject, res, "", options);
     }
     return res;
 }
 
-export function highlightPartByPath<T extends DataObject>(message: T, path: string, options: Options): LOG {
-    const res = highlightPartsOfMessage(message, undefined, options);
+export function highlightPartByPath<T extends DataObject>(message: T, path: string, options: Options): LogItem[] {
+    const res = highlightPartsOfMessage(message, options);
     return highlightAddedSubMessage(res, path, options);
 }
 
 function highlightSubObject<T extends DataObject>(
-    subObject: T, prevObject: T, loggedParts: LOG, path: string, options: Options): LOG {
+    subObject: T, prevObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
     let res = [...loggedParts];
     Object.keys(subObject).forEach((key) => {
         if (prevObject === undefined) {
@@ -78,7 +88,7 @@ function highlightSubObject<T extends DataObject>(
 }
 
 function searchForRemovedData<T extends DataObject>(
-    subObject: T, prevObject: T, loggedParts: LOG, path: string, options: Options): LOG {
+    subObject: T, prevObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
     let res = [...loggedParts];
     Object.keys(prevObject).forEach(key => {
         const subMessage = subObject[key];
@@ -96,7 +106,7 @@ function searchForRemovedData<T extends DataObject>(
     return res;
 }
 
-function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts: LOG, path: string, options: Options): LOG {
+function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
     let result = [...loggedParts];
     Object.keys(subObject).forEach((key) => {
         const newPath = getNewPath(path, key);
@@ -110,10 +120,10 @@ function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts:
 }
 
 function highlightAddedSubMessage(
-    loggedParts: LOG,
+    loggedParts: LogItem[],
     path: string,
     options: Options
-): LOG {
+): LogItem[] {
     const result = loggedParts.reduce((acc, item) => {
         if (item.path.startsWith(path)) {
             acc.push({ text: item.text, path: item.path, type: "added" });
@@ -121,7 +131,7 @@ function highlightAddedSubMessage(
             acc.push(item);
         }
         return acc;
-    }, [] as LOG);
+    }, [] as LogItem[]);
     if (options.isDebug) {
         console.debug("highlightAddedSubMessage", { path, loggedParts, result });
     }
@@ -130,12 +140,12 @@ function highlightAddedSubMessage(
 
 function highlightSubMessage(
     partMsgString: string,
-    loggedParts: LOG,
+    loggedParts: LogItem[],
     type: "key" | "changed" | "removed" | "",
     isDifference: boolean,
     path: string,
     options: Options
-): LOG {
+): LogItem[] {
     const result = loggedParts.reduce((acc, item) => {
         const SPLIT_MESSAGE_LENGTH = 2;
         const parts = item.text.split(partMsgString).filter(part => part !== "");
@@ -160,7 +170,7 @@ function highlightSubMessage(
             acc.push(item);
         }
         return acc;
-    }, [] as LOG);
+    }, [] as LogItem[]);
     if (options.isDebug) {
         console.debug("highlightSubMessage", { path, type, partMsgString, loggedParts, result });
     }
@@ -168,18 +178,18 @@ function highlightSubMessage(
 }
 
 function highlightErrorInMessage(
-    loggedParts: LOG,
+    loggedParts: LogItem[],
     path: string,
     options: Options,
     comment: string,
-): LOG {
+): LogItem[] {
     const numberOfParts = loggedParts.filter(part => part.path.startsWith(path)).length;
     let i = 0;
     const result = loggedParts.reduce((acc, item) => {
         if (item.path.startsWith(path)) {
             i++;
             if (comment !== "" && numberOfParts === i) {
-                if (options.formatMultiline) {
+                if (options.multiline) {
                     const separator = "\n";
                     const splitText = item.text.split(separator);
                     acc.push({ text: splitText[0]!, path: item.path, type: "error" });
@@ -196,7 +206,7 @@ function highlightErrorInMessage(
             acc.push(item);
         }
         return acc;
-    }, [] as LOG);
+    }, [] as LogItem[]);
     if (options.isDebug) {
         console.debug("highlightErrorInMessage", { path, loggedParts, result });
     }
@@ -205,15 +215,15 @@ function highlightErrorInMessage(
 
 export function highlightErrorsInJson(data: DataObject, errors: {
     path: string; text: string;
-}[], options: { formatMultiline?: boolean, isDebug?: boolean; } = {}): LOG {
-    let result = highlightPartsOfMessage(data, undefined, options);
+}[], options: { formatMultiline?: boolean, isDebug?: boolean; } = {}): LogItem[] {
+    let result = highlightPartsOfMessage(data, options);
     errors.forEach(error => {
         result = highlightErrorInMessage(result, error.path, options,
             options.formatMultiline ? " // " + error.text : ` /* ${error.text} */ `);
     });
 
     if (options?.isDebug) {
-        console.debug("highlightJsonParts", result);
+        console.debug("highlightErrorsInJson", result);
     }
     return result;
 }

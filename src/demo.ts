@@ -8,15 +8,13 @@ import {
 } from "./formattingUtils";
 
 function executeFormatter(data: typeof logs) {
-    console.log("Default browser presentation", data.current);
+    console.log("JSON message 1", data.prevObject);
+    console.log("JSON message 2", data.current);
 
-    const result = parseMessage(data.current,
-        { showDifferences: true, formatMultiline: false }, data.prevObject);
-    console.info(...formatForLoggingInBrowser("Formatted message: ", result));
-    console.log(result);
+    const result = parseMessage(data.current, { showDiffWithObject: data.prevObject });
+    console.info(...formatForLoggingInBrowser("Formatted message 2: ", result));
 
-    const result2 = parseMessage(data.current,
-        { showDifferences: false, formatMultiline: true }, data.prevObject);
+    const result2 = parseMessage(data.current, { multiline: true });
     document.querySelector("#demo_input_currentMessage")!.innerHTML = highlightTextInHtml(result2);
     document.querySelector("#demo_input_prevMessage")!.innerHTML =
         formatMultiLineTextAsHTML(JSON.stringify(data.prevObject ?? {}, null, "  "));

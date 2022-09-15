@@ -1,4 +1,4 @@
-import { DataObject, DataObjectValues, FormattingType, LOG, LogItem, ValueType } from "./types";
+import { DataObject, DataObjectValues, FormattingType, LogItem, ValueType } from "./types";
 
 const space = "  ";
 
@@ -40,7 +40,7 @@ function isSimpleType(ele: DataObjectValues): ele is ValueType {
     return typeof ele == "string" || ele == null || typeof ele == "number" || typeof ele == "boolean";
 }
 
-export function convertJsonToYaml(obj: DataObjectValues, path = ""): LOG {
+export function convertJsonToYaml(obj: DataObjectValues, path = ""): LogItem[] {
     if (obj instanceof Array) {
         return convertArray(obj, path);
     } else if (isSimpleType(obj)) {
@@ -69,7 +69,7 @@ function convertArray(obj: (DataObject | ValueType)[], path: string) {
         return [wrapLog(concatString("[]"), path)];
     }
 
-    const result: LOG = [];
+    const result: LogItem[] = [];
     obj.forEach((item, i) => {
         const newPath = concatString(path, ".", i.toString());
         convertJsonToYaml(item, newPath).forEach((recurseItem, j) => {
@@ -81,7 +81,7 @@ function convertArray(obj: (DataObject | ValueType)[], path: string) {
 }
 
 function convertObject(obj: DataObject, path: string) {
-    const result: LOG = [];
+    const result: LogItem[] = [];
     Object.keys(obj).forEach(k => {
         const ele = obj[k];
         const propName = normalizeString(k);

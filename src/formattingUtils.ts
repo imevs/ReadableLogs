@@ -1,4 +1,4 @@
-import { FormattingType, LOG } from "./types";
+import { FormattingType, LogItem } from "./types";
 
 type Color = "red" | "blue" | "pink" | "orange" | "green" | "lightgreen" | "";
 
@@ -17,8 +17,11 @@ function getColor(type: FormattingType): Color {
     return typeToColorMap[type];
 }
 
+/**
+ * Formats output for console.log
+ */
 export function formatForLoggingInBrowser(
-    prefix: string, result: LOG, prefixColors: string[] = [],
+    prefix: string, result: LogItem[], prefixColors: string[] = [],
     typeToStyleMap: Record<FormattingType, string> = typeToColorMap,
 ): string[] {
     const getStyle = (type: FormattingType) => typeToStyleMap[type];
@@ -40,8 +43,12 @@ export function formatMultiLineTextAsHTML(content: string): string {
 export function removeHtmlEntities(content: string): string {
     return content.split(String.fromCharCode(160)).join(" ").split("<br />").join("\n");
 }
-export function highlightTextInHtml(messages: LOG | LOG[]): string {
-    const formattedMessages = ((Array.isArray(messages[0]) ? messages : [messages]) as LOG[]).map(message => {
+
+/**
+ * Formats output for html representation
+ */
+export function highlightTextInHtml(messages: LogItem[] | LogItem[][]): string {
+    const formattedMessages = ((Array.isArray(messages[0]) ? messages : [messages]) as LogItem[][]).map(message => {
         return message
             .map(part => `<span style="color: ${getColor(part.type)}">${formatMultiLineTextAsHTML(part.text)}</span>`)
             .join("");

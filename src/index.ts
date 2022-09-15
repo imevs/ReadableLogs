@@ -1,26 +1,29 @@
-import { DataObject, LOG } from "./types";
+import { DataObject, LogItem } from "./types";
 import { convertJsonToYaml } from "./yamlSupport";
-import { highlightPartByPath, highlightPartsOfMessage, Options } from "./PrettyLogs";
+import { highlightPartByPath, highlightPartsOfMessage } from "./PrettyLogs";
 
 export * from "./PrettyLogs";
 export * from "./formattingUtils";
 
-export function parseMessage(data: DataObject, options: undefined, prevMessage: undefined, yaml: true): LOG;
-export function parseMessage(
-    data: DataObject, options?: { formatMultiline?: boolean; }, prevMessage?: undefined, yaml?: false
-): LOG;
-export function parseMessage(data: DataObject, options: Options, prevMessage: DataObject, yaml?: false): LOG;
-export function parseMessage(
-    data: DataObject,
-    options: undefined | Options,
-    prevMessage: undefined | DataObject,
-    yaml: undefined | boolean
-): LOG {
-    if (yaml) {
+export type ApiOptions = {
+    yaml?: true;
+} | {
+    isDebug?: true;
+    showDiffWithObject?: DataObject;
+} | {
+    isDebug?: true;
+    multiline?: true;
+};
+
+type KeysOfUnion<T> = T extends T ? keyof T: never;
+type AllOptions = { [K in KeysOfUnion<ApiOptions>]?: undefined; };
+
+export function parseMessage(data: DataObject, options: ApiOptions = {}): LogItem[] {
+    if ((options as AllOptions).yaml) {
         return convertJsonToYaml(data);
     }
-    const result = highlightPartsOfMessage(data, prevMessage, options ?? { });
-    if (options?.isDebug) {
+    const result = highlightPartsOfMessage(data, (options as AllOptions));
+    if ((options as AllOptions).isDebug) {
         console.debug("parseMessage", result);
     }
     return result;

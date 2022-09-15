@@ -31,7 +31,7 @@ npm install readable-json-log
         b: "2",
         c: ["3"]
     };
-    const parsedMessage = parseMessage(message, { formatMultiline: true });
+    const parsedMessage = parseMessage(message, { multiline: true });
     console.info(...formatForLoggingInBrowser("Formatted message: ", parsedMessage));
 ```
 or
@@ -51,7 +51,7 @@ or
         c: ["3"]
     };
     // if prevMessage is provided it should be able to apply option "showDifferences"
-    const parsedMessage = parseMessage(message, { showDifferences: true }, prevMessage);
+    const parsedMessage = parseMessage(message, { showDiffWithObject: prevMessage });
     console.info(...formatForLoggingInBrowser("Formatted message: ", parsedMessage));
 ```
 
