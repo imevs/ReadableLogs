@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "tsc": "tsc",
+    "build": "tsc && tsc -p tsconfig.userscript.json",
     "dist": "tsc -p tsconfig.dist.json",
     "lint": "eslint ./src",
     "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register ./src/*spec.ts"
