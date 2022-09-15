@@ -50,7 +50,7 @@ or
         b: "2",
         c: ["3"]
     };
-    // if prevMessage is provided it should be able to apply option "showDifferences"
+    // if prevMessage is provided it should be able to apply option "showDiffWithObject"
     const parsedMessage = parseMessage(message, { showDiffWithObject: prevMessage });
     console.info(...formatForLoggingInBrowser("Formatted message: ", parsedMessage));
 ```
