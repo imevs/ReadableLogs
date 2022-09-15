@@ -19,7 +19,7 @@ type FormattingOptions = {
  * formattingOptions are to be provided in tamperMonkey script to customize behaviour of user script,
  * see example at /userScripts/overrideConsoleLogging.js
  */
-const passedFormattingOptions = (window as any).formattingOptions as Partial<FormattingOptions>;
+const passedFormattingOptions = (window as any).formattingOptions as (undefined | Partial<FormattingOptions>);
 
 function enhanceLogger(logFunction: typeof console.log, options: FormattingOptions, oldMessages: Record<string, DataObject>, type: string) {
     return (args: DataObjectValues[]) => {
@@ -42,10 +42,10 @@ function enhanceLogger(logFunction: typeof console.log, options: FormattingOptio
 }
 
 const formattingOptions: FormattingOptions = {
-    replace: passedFormattingOptions.replace ?? false,
-    mode: passedFormattingOptions.mode ?? "overrideConsole",
-    getMessageType: passedFormattingOptions.getMessageType ?? (logPart => Object.keys(logPart)[0]),
-    prefix: passedFormattingOptions.prefix ?? "formatted json: "
+    replace: passedFormattingOptions?.replace ?? false,
+    mode: passedFormattingOptions?.mode ?? "overrideConsole",
+    getMessageType: passedFormattingOptions?.getMessageType ?? (logPart => Object.keys(logPart)[0]),
+    prefix: passedFormattingOptions?.prefix ?? "formatted json: "
 };
 
 if (formattingOptions.mode === "overrideConsole") {

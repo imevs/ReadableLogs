@@ -1,3 +1,4 @@
 TODO:
 * Full JSON highlightning (number / string / boolean)
 * format logs for NODE console
+* show diff and multiline in the same time
