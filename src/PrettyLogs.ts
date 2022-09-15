@@ -215,11 +215,11 @@ function highlightErrorInMessage(
 
 export function highlightErrorsInJson(data: DataObject, errors: {
     path: string; text: string;
-}[], options: { formatMultiline?: boolean, isDebug?: boolean; } = {}): LogItem[] {
+}[], options: { multiline?: boolean, isDebug?: boolean; } = {}): LogItem[] {
     let result = highlightPartsOfMessage(data, options);
     errors.forEach(error => {
         result = highlightErrorInMessage(result, error.path, options,
-            options.formatMultiline ? " // " + error.text : ` /* ${error.text} */ `);
+            options.multiline ? " // " + error.text : ` /* ${error.text} */ `);
     });
 
     if (options?.isDebug) {

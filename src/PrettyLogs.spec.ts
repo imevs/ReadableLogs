@@ -224,7 +224,7 @@ describe("PrettyLogs", () => {
             const result = highlightErrorsInJson({ a: { b: { c: 2, d: 3 }}}, [
                 { text: "should be string", path: "/a/b/c" },
                 { text: "should be boolean", path: "/a/b/d" }
-            ], { formatMultiline: true, isDebug: false });
+            ], { multiline: true, isDebug: false });
             assert.deepEqual(result, [
                 { text: "{\n  ", type: "", path: "" },
                 { text: '"a"', type: "key", path: "/a" },
@@ -246,7 +246,7 @@ describe("PrettyLogs", () => {
             const result = highlightErrorsInJson({ a: { b: { c: 2, d: 3 }}}, [
                 { text: "should be string", path: "/a/b/c" },
                 { text: "should be boolean", path: "/a/b/d" }
-            ], { formatMultiline: false, isDebug: false });
+            ], { multiline: false, isDebug: false });
             assert.deepEqual(result, [
                 { text: "{", type: "", path: "" },
                 { text: '"a"', type: "key", path: "/a" },

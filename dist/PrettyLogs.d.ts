@@ -15,6 +15,6 @@ export declare function highlightErrorsInJson(data: DataObject, errors: {
     path: string;
     text: string;
 }[], options?: {
-    formatMultiline?: boolean;
+    multiline?: boolean;
     isDebug?: boolean;
 }): LogItem[];

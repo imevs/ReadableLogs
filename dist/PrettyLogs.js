@@ -169,7 +169,7 @@ define(["require", "exports"], function (require, exports) {
     function highlightErrorsInJson(data, errors, options = {}) {
         let result = highlightPartsOfMessage(data, options);
         errors.forEach(error => {
-            result = highlightErrorInMessage(result, error.path, options, options.formatMultiline ? " // " + error.text : ` /* ${error.text} */ `);
+            result = highlightErrorInMessage(result, error.path, options, options.multiline ? " // " + error.text : ` /* ${error.text} */ `);
         });
         if (options === null || options === void 0 ? void 0 : options.isDebug) {
             console.debug("highlightErrorsInJson", result);
