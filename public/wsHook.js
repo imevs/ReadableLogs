@@ -8,6 +8,12 @@
  * Reference: http://www.w3.org/TR/2011/WD-websockets-20110419/#websocket
  */
 
+/**
+ * wsHook implementation is copied from https://github.com/skepticfx/wshook for further improvements and fixing issues,
+ * such as: fixed typos, implemented correct inheritance of Websocket wrapper, so it can substitute the original correctly
+ * As a next improvement it is planned to rewrite wsHook on typescript
+ */
+
 var wsHook = {};
 (function () {
     // Mutable MessageEvent.
