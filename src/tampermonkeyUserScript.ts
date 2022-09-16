@@ -58,7 +58,7 @@ if (formattingOptions.mode === "overrideConsole") {
 } else if (formattingOptions.mode === "overrideWebsocket") {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    if (typeof wsHook !== undefined) { // wsHook is provided by https://cdn.rawgit.com/skepticfx/wshook/master/wsHook.js
+    if (typeof wsHook !== undefined) { // wsHook is provided by https://raw.githubusercontent.com/imevs/wshook/master/wsHook.js
         const outgoingMessagesHistory: Record<string, DataObject> = {};
         const incomingMessagesHistory: Record<string, DataObject> = {};
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
