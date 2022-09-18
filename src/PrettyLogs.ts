@@ -41,7 +41,7 @@ function serializeData(message: DataObjectValues, options: Options) {
  *             ]
  **/
 export function highlightPartsOfMessage<T extends DataObject>(message: T, options: Options): LogItem[] {
-    let res: LogItem[] = [{ text: serializeData(message, options), type: "", path: "" }];
+    let res: LogItem[] = [{ text: serializeData(message, options), type: "specialSymbols", path: "" }];
     res = highlightSubObjectKeys(message, res, "", options);
     res.forEach((item, index) => {
         if (item.path === "" && index > 0) {
@@ -141,7 +141,7 @@ function highlightAddedSubMessage(
 function highlightSubMessage(
     partMsgString: string,
     loggedParts: LogItem[],
-    type: "key" | "changed" | "removed" | "",
+    type: "key" | "changed" | "removed" | "specialSymbols",
     isDifference: boolean,
     path: string,
     options: Options
@@ -153,12 +153,12 @@ function highlightSubMessage(
             isDifference && path.startsWith(item.path) && parts.length === SPLIT_MESSAGE_LENGTH
         ) {
             acc.push(
-                { text: parts[0] as string, type: "", path: item.path },
+                { text: parts[0] as string, type: "specialSymbols", path: item.path },
             );
             acc.push(
                 { text: partMsgString, type: type, path: path },
                 { text: parts.slice(1).join(partMsgString) as string,
-                    type: "", path: isDifference ? path : "" }
+                    type: "specialSymbols", path: isDifference ? path : "" }
             );
         } else if (partMsgString === item.text) {
             acc.push({

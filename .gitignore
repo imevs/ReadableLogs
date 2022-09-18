@@ -3,3 +3,7 @@ public/scripts
 /tsconfig.dist.tsbuildinfo
 /tsconfig.tsbuildinfo
 /tsconfig.userscript.tsbuildinfo
+/public/tampermonkeyUserScript.d.ts
+/public/tampermonkeyUserScript.js
+/public/tampermonkeyUserScript.tsbuildinfo
+/public/tsconfig.tsbuildinfo

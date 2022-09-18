@@ -3,7 +3,7 @@ import { FormattingType, LogItem } from "./types";
 type Color = "red" | "blue" | "pink" | "orange" | "green" | "lightgreen" | "";
 
 const typeToColorMap: Record<FormattingType, Color> = {
-    "": "",
+    specialSymbols: "",
     value: "lightgreen",
     key: "orange",
     added: "blue",
@@ -36,7 +36,7 @@ export function formatForLoggingInBrowser(
         removedItems.map(item => item.path + ":" + item.text)
             .join(",").split("/").join("."), // replace "/" path separator as it is treated by dev tools as part of url
         ...prefixColors,
-        ...notRemovedItems.map(item => item.type !== "" ? `color: ${getStyle(item.type)};` : ""),
+        ...notRemovedItems.map(item => item.type !== "specialSymbols" ? `color: ${getStyle(item.type)};` : ""),
         ...(removedItems.length > 0 ? ["", `color: ${getStyle("removed")};`] : [])
     ];
 }

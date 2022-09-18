@@ -1,4 +1,4 @@
-export type FormattingType = "key" | "added" | "changed" | "removed" | "value" | "commented" | "error" | "";
+export type FormattingType = "key" | "added" | "changed" | "removed" | "value" | "commented" | "error" | "specialSymbols";
 export type LogItem = {
     text: string;
     type: FormattingType;
