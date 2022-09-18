@@ -1,6 +1,6 @@
 import { DataObject, LogItem } from "./types";
 import { convertJsonToYaml } from "./yamlSupport";
-import { highlightPartByPath, highlightPartsOfMessage } from "./PrettyLogs";
+import { highlightAddedSubMessage, highlightPartsOfMessage } from "./PrettyLogs";
 
 export * from "./PrettyLogs";
 export * from "./formattingUtils";
@@ -30,13 +30,13 @@ export function parseMessage(data: DataObject, options: ApiOptions = {}): LogIte
 }
 
 /**
- *
+ * Marks elements of provided object "data" with type "added" for given json path to elements
  * @param data
  * @param path format /a/b/c
  * @param options
  */
 export function highlightJsonParts(data: DataObject, path: string, options: { formatMultiline?: boolean; isDebug?: boolean; } = {}) {
-    const result = highlightPartByPath(data, path, options);
+    const result = highlightAddedSubMessage(highlightPartsOfMessage(data, options), path, options);
     if (options?.isDebug) {
         console.debug("highlightJsonParts", result);
     }

@@ -3,6 +3,7 @@ import { FormattingType, LogItem } from "./types";
 type Color = "red" | "blue" | "pink" | "orange" | "green" | "lightgreen" | "";
 
 const typeToColorMap: Record<FormattingType, Color> = {
+    unknown: "",
     specialSymbols: "",
     value: "lightgreen",
     key: "orange",

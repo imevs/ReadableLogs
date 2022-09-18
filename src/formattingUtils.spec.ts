@@ -11,14 +11,18 @@ describe("formattingUtils", () => {
             const message = { a: 1, c: { b: "2" } };
             const result = parseMessage(message);
             assert.deepEqual(formatForLoggingInBrowser("", result), [
-                '%c{%c"a"%c:1,%c"c"%c:{%c"b"%c:"2"}}',
+                '%c{%c"a"%c:%c1%c,%c"c"%c:{%c"b"%c:"%c2%c"}}',
+                "",
+                "color: orange;",
+                "",
+                "color: lightgreen;",
                 "",
                 "color: orange;",
                 "",
                 "color: orange;",
                 "",
-                "color: orange;",
-                ""
+                "color: lightgreen;",
+                "",
             ]);
         });
 
@@ -27,11 +31,13 @@ describe("formattingUtils", () => {
             const current = { b: [{ a: 1} ] };
             const result = parseMessage(current, { showDiffWithObject: prevObject });
             assert.deepEqual(formatForLoggingInBrowser("", result), [
-                '%c{%c"b"%c:[{%c"a"%c:1}]}%c Removed: %c.b.1:{"a":2}',
+                '%c{%c"b"%c:[{%c"a"%c:%c1%c}]}%c Removed: %c.b.1:{"a":2}',
                 "",
                 "color: orange;",
                 "",
                 "color: orange;",
+                "",
+                "color: lightgreen;",
                 "",
                 "",
                 "color: red;"

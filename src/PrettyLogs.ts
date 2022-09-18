@@ -35,34 +35,31 @@ function serializeData(message: DataObjectValues, options: Options) {
  *
  * Example:
  *  { "a": 1 } -> [
- *                 { path: "", text: "{", type: "" },
+ *                 { path: "", text: "{", type: "specialSymbols" },
  *                 { path: "/a", text: '"a"', type: "key" },
- *                 { path: "/a", text: ":1}", type: "" }
+ *                 { path: "/a", text: ":", type: "specialSymbols" },
+ *                 { path: "/a", text: "1", type: "value" },
+ *                 { path: "/a", text: "}", type: "specialSymbols" }
  *             ]
  **/
 export function highlightPartsOfMessage<T extends DataObject>(message: T, options: Options): LogItem[] {
-    let res: LogItem[] = [{ text: serializeData(message, options), type: "specialSymbols", path: "" }];
-    res = highlightSubObjectKeys(message, res, "", options);
-    res.forEach((item, index) => {
+    let result: LogItem[] = [{ text: serializeData(message, options), type: "unknown", path: "" }];
+    result = highlightSubObjectKeys(message, result, "", options);
+    result.forEach((item, index) => {
         if (item.path === "" && index > 0) {
-            item.path = res[index - 1]!.path;
+            item.path = result[index - 1]!.path;
         }
     });
     if (options.showDiffWithObject !== undefined) {
-        res = highlightSubObject(message, options.showDiffWithObject, res, "", options);
-        res = searchForRemovedData(message, options.showDiffWithObject, res, "", options);
+        result = highlightSubObject(message, options.showDiffWithObject, result, "", options);
+        result = searchForRemovedData(message, options.showDiffWithObject, result, "", options);
     }
-    return res;
-}
-
-export function highlightPartByPath<T extends DataObject>(message: T, path: string, options: Options): LogItem[] {
-    const res = highlightPartsOfMessage(message, options);
-    return highlightAddedSubMessage(res, path, options);
+    return mergeLogItems(result);
 }
 
 function highlightSubObject<T extends DataObject>(
     subObject: T, prevObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
-    let res = [...loggedParts];
+    let result = [...loggedParts];
     Object.keys(subObject).forEach((key) => {
         if (prevObject === undefined) {
             return;
@@ -72,38 +69,38 @@ function highlightSubObject<T extends DataObject>(
             if (prevObject[key] !== undefined) {
                 if (isDifferent(subObjectPart, prevObject[key])) {
                     if (typeof subObjectPart === "object" && subObjectPart !== null) {
-                        res = highlightSubObject(subObjectPart as DataObject,
-                            prevObject[key] as DataObject, res, updatedPath, options);
+                        result = highlightSubObject(subObjectPart as DataObject,
+                            prevObject[key] as DataObject, result, updatedPath, options);
                     } else {
-                        res = highlightSubMessage(
-                            serializeData(subObjectPart, options), res, "changed", true, updatedPath, options);
+                        result = highlightSubMessage(
+                            serializeData(subObjectPart, options), result, "changed", true, updatedPath, options);
                     }
                 }
             } else {
-                res = highlightAddedSubMessage(res, updatedPath, options);
+                result = highlightAddedSubMessage(result, updatedPath, options);
             }
         }
     });
-    return res;
+    return result;
 }
 
 function searchForRemovedData<T extends DataObject>(
     subObject: T, prevObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
-    let res = [...loggedParts];
+    let result = [...loggedParts];
     Object.keys(prevObject).forEach(key => {
         const subMessage = subObject[key];
         const updatedPath = getNewPath(path, key);
         if (subMessage === undefined) {
-            res.push({
+            result.push({
                 type: "removed",
                 path: updatedPath,
                 text: serializeData(prevObject[key], options),
             });
         } else if (typeof subMessage === "object" && subMessage !== null) {
-            res = searchForRemovedData(subMessage as DataObject, prevObject[key] as DataObject, res, updatedPath, options);
+            result = searchForRemovedData(subMessage as DataObject, prevObject[key] as DataObject, result, updatedPath, options);
         }
     });
-    return res;
+    return result;
 }
 
 function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
@@ -112,14 +109,18 @@ function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts:
         const newPath = getNewPath(path, key);
         const subMessageValue = subObject[key];
         result = highlightSubMessage(`"${key}"`, result, "key", false, newPath, options);
-        if (typeof subMessageValue === "object" && subMessageValue !== null) {
-            result = highlightSubObjectKeys(subMessageValue as DataObject, result, newPath, options);
+        if (subMessageValue !== null) {
+            if (typeof subMessageValue === "object") {
+                result = highlightSubObjectKeys(subMessageValue as DataObject, result, newPath, options);
+            } else {
+                result = highlightSubMessage(`${subMessageValue}`, result, "value", false, newPath, options);
+            }
         }
     });
     return result;
 }
 
-function highlightAddedSubMessage(
+export function highlightAddedSubMessage(
     loggedParts: LogItem[],
     path: string,
     options: Options
@@ -135,13 +136,13 @@ function highlightAddedSubMessage(
     if (options.isDebug) {
         console.debug("highlightAddedSubMessage", { path, loggedParts, result });
     }
-    return result;
+    return mergeLogItems(result);
 }
 
 function highlightSubMessage(
     partMsgString: string,
     loggedParts: LogItem[],
-    type: "key" | "changed" | "removed" | "specialSymbols",
+    type: "key" | "changed" | "removed" | "specialSymbols" | "value",
     isDifference: boolean,
     path: string,
     options: Options
@@ -223,7 +224,25 @@ export function highlightErrorsInJson(data: DataObject, errors: {
     });
 
     if (options?.isDebug) {
-        console.debug("highlightErrorsInJson", result);
+        console.debug("highlightErrorsInJson", mergeLogItems(result));
     }
-    return result;
+    return mergeLogItems(result);
+}
+
+/**
+ * merge text content for consequent elements with same type and path
+ * @param logParts
+ */
+function mergeLogItems(logParts: LogItem[]): LogItem[] {
+    return logParts.reduce<LogItem[]>((all, item) => {
+        if (all.length > 1 &&
+            all[all.length - 1]!.type === item.type &&
+            all[all.length - 1]!.path === item.path
+        ) {
+            all[all.length - 1]!.text += item.text;
+        } else {
+            all.push(item);
+        }
+        return all;
+    }, []);
 }
