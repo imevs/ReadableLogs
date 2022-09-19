@@ -10,9 +10,7 @@ export type ApiOptions = {
 } | {
     isDebug?: true;
     showDiffWithObject?: DataObject;
-} | {
-    isDebug?: true;
-    multiline?: true;
+    multiline?: boolean;
 };
 
 type KeysOfUnion<T> = T extends T ? keyof T: never;

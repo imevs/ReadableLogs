@@ -2,7 +2,7 @@ import { FormattingType, LogItem } from "./types";
 
 type Color = "red" | "blue" | "pink" | "orange" | "green" | "lightgreen" | "";
 
-const typeToColorMap: Record<FormattingType, Color> = {
+export const typeToColorMap: Record<FormattingType, Color> = {
     unknown: "",
     specialSymbols: "",
     value: "lightgreen",
@@ -25,9 +25,9 @@ function getColor(type: FormattingType): Color {
  */
 export function formatForLoggingInBrowser(
     prefix: string, result: LogItem[], prefixColors: string[] = [],
-    typeToStyleMap: Record<FormattingType, string> = typeToColorMap,
+    typeToStyleMap?: Partial<Record<FormattingType, string>>,
 ): string[] {
-    const getStyle = (type: FormattingType) => typeToStyleMap[type];
+    const getStyle = (type: FormattingType): string => typeToStyleMap?.[type] ?? typeToColorMap[type];
     const removedItems = result.filter(item => item.type === "removed");
     const notRemovedItems = result.filter(item => item.type !== "removed");
     return [

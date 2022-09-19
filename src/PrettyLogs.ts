@@ -7,14 +7,7 @@ function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
 export type Options = {
     isDebug?: boolean;
     showDiffWithObject?: DataObject;
-    /**
-     * It is not possible enable both showDiffWithObject and formatMultiline
-     */
-    multiline?: false;
-} | {
-    isDebug?: boolean;
-    multiline?: true;
-    showDiffWithObject?: undefined;
+    multiline?: boolean;
 };
 
 export const pathSeparator = "/";

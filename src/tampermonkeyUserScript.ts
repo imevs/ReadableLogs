@@ -1,10 +1,24 @@
 import { highlightPartsOfMessage, formatForLoggingInBrowser, safeParse } from "./index";
-import { DataObject, DataObjectValues } from "./types";
+import { DataObject, DataObjectValues, FormattingType } from "./types";
 
 type FormattingOptions = {
     mode: "overrideConsole" | "overrideWebsocket";
+    /**
+     * should override console output
+     */
     replace: boolean;
+    /**
+     * format JSON as multiline for better readability (suits for small messages)
+     */
+    multiline: boolean;
+    /**
+     * limit max size of message to be formatted, is used to prevent possible performance issues with large documents
+     */
     maxMessageSize: number;
+    /**
+     * customize colors for highlighting
+     */
+    colorsMap?: Partial<Record<FormattingType, string>>;
     /**
      * Adds prefix for logged value, useful for filtering only needed entries in console
      */
@@ -29,9 +43,9 @@ function enhanceLogger(logFunction: typeof console.log, options: FormattingOptio
                 const id = options.getMessageType(logPart as DataObject, args, type);
                 if (id !== undefined) {
                     const result = highlightPartsOfMessage(logPart as DataObject,
-                        oldMessages[id] !== undefined ? { showDiffWithObject: oldMessages[id] } : { multiline: true });
+                        { showDiffWithObject: oldMessages[id], multiline: options.multiline });
                     oldMessages[id] = logPart as DataObject;
-                    logFunction(...formatForLoggingInBrowser(options.prefix, result));
+                    logFunction(...formatForLoggingInBrowser(options.prefix, result, [], options.colorsMap));
                 }
             }
             return logPart;
@@ -43,8 +57,10 @@ function enhanceLogger(logFunction: typeof console.log, options: FormattingOptio
 }
 
 const formattingOptions: FormattingOptions = {
+    colorsMap: passedFormattingOptions?.colorsMap ?? undefined,
     maxMessageSize: passedFormattingOptions?.maxMessageSize ?? 1000,
     replace: passedFormattingOptions?.replace ?? false,
+    multiline: passedFormattingOptions?.multiline ?? false,
     mode: passedFormattingOptions?.mode ?? "overrideConsole",
     getMessageType: passedFormattingOptions?.getMessageType ?? (logPart => Object.keys(logPart)[0]),
     prefix: passedFormattingOptions?.prefix ?? "formatted json: "
