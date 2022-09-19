@@ -1,6 +1,6 @@
 import chai from "chai";
 const assert = chai.assert;
-import { highlightErrorsInJson, highlightJsonParts, parseMessage } from "./index";
+import { annotateDataInJson, highlightJsonParts, parseMessage } from "./index";
 
 describe("PrettyLogs", () => {
     describe("parseMessage", () => {
@@ -228,11 +228,11 @@ describe("PrettyLogs", () => {
         });
     });
 
-    describe("highlightErrorsInJson", () => {
+    describe("annotateDataInJson", () => {
         it("should add comments in multiline JSON", () => {
-            const result = highlightErrorsInJson({ a: { b: { c: 2, d: 3 }}}, [
-                { text: "should be string", path: "/a/b/c" },
-                { text: "should be boolean", path: "/a/b/d" }
+            const result = annotateDataInJson({ a: { b: { c: 2, d: 3 }}}, [
+                { text: "should be string", path: "/a/b/c", type: "error" },
+                { text: "should be boolean", path: "/a/b/d", type: "error" }
             ], { multiline: true });
             assert.deepEqual(result, [
                 { text: "{\n  ", type: "specialSymbols", path: "" },
@@ -241,18 +241,18 @@ describe("PrettyLogs", () => {
                 { text: '"b"', type: "key", path: "/a/b" },
                 { text: ": {\n      ", type: "specialSymbols", path: "/a/b" },
                 { text: '"c": 2,', path: "/a/b/c", type: "error" },
-                { text: " // should be string\n", path: "/a/b/c", type: "commented" },
+                { text: " // should be string\n", path: "/a/b/c", type: "annotation" },
                 { text: "\n      ", path: "/a/b/c", type: "error" },
                 { text: '"d": 3', path: "/a/b/d", type: "error" },
-                { text: " // should be boolean\n", path: "/a/b/d", type: "commented" },
+                { text: " // should be boolean\n", path: "/a/b/d", type: "annotation" },
                 { text: "\n    }\n  }\n}", path: "/a/b/d", type: "error" }
             ]);
         });
 
         it("should add comments in not multiline JSON", () => {
-            const result = highlightErrorsInJson({ a: { b: { c: 2, d: 3 }}}, [
-                { text: "should be string", path: "/a/b/c" },
-                { text: "should be boolean", path: "/a/b/d" }
+            const result = annotateDataInJson({ a: { b: { c: 2, d: 3 }}}, [
+                { text: "should be string", path: "/a/b/c", type: "error" },
+                { text: "should be boolean", path: "/a/b/d", type: "error" }
             ], { multiline: false });
             assert.deepEqual(result, [
                 { text: "{", type: "specialSymbols", path: "" },
@@ -261,9 +261,9 @@ describe("PrettyLogs", () => {
                 { text: '"b"', type: "key", path: "/a/b" },
                 { text: ":{", type: "specialSymbols", path: "/a/b" },
                 { text: '"c":2,', path: "/a/b/c", type: "error" },
-                { text: " /* should be string */ ", path: "/a/b/c", type: "commented" },
+                { text: " /* should be string */ ", path: "/a/b/c", type: "annotation" },
                 { text: '"d":3}}}', path: "/a/b/d", type: "error" },
-                { text: " /* should be boolean */ ", path: "/a/b/d", type: "commented" }
+                { text: " /* should be boolean */ ", path: "/a/b/d", type: "annotation" }
             ]);
         });
     });

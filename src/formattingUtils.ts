@@ -11,7 +11,7 @@ export const typeToColorMap: Record<FormattingType, Color> = {
     changed: "green",
     removed: "red",
     error: "red",
-    commented: "green",
+    annotation: "green",
 };
 
 function getColor(type: FormattingType): Color {

@@ -1,4 +1,4 @@
-import { DataObject, DataObjectValues, LogItem } from "./types";
+import { DataObject, DataObjectValues, FormattingType, LogItem } from "./types";
 
 function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
     return JSON.stringify(obj1) !== JSON.stringify(obj2);
@@ -118,14 +118,7 @@ export function highlightAddedSubMessage(
     path: string,
     options: Options
 ): LogItem[] {
-    const result = loggedParts.reduce((acc, item) => {
-        if (item.path.startsWith(path)) {
-            acc.push({ text: item.text, path: item.path, type: "added" });
-        } else {
-            acc.push(item);
-        }
-        return acc;
-    }, [] as LogItem[]);
+    const result = injectMetaDataToMessage(loggedParts, path, options, "", "added");
     if (options.isDebug) {
         console.debug("highlightAddedSubMessage", { path, loggedParts, result });
     }
@@ -171,11 +164,12 @@ function highlightSubMessage(
     return result;
 }
 
-function highlightErrorInMessage(
+function injectMetaDataToMessage(
     loggedParts: LogItem[],
     path: string,
     options: Options,
     comment: string,
+    typeOfMetadata: FormattingType,
 ): LogItem[] {
     const numberOfParts = loggedParts.filter(part => part.path.startsWith(path)).length;
     let i = 0;
@@ -186,34 +180,43 @@ function highlightErrorInMessage(
                 if (options.multiline) {
                     const separator = "\n";
                     const splitText = item.text.split(separator);
-                    acc.push({ text: splitText[0]!, path: item.path, type: "error" });
-                    acc.push({ text: comment + separator, path: item.path, type: "commented" });
-                    acc.push({ text: separator + splitText.slice(1).join(separator), path: item.path, type: "error" });
+                    acc.push({ text: splitText[0]!, path: item.path, type: typeOfMetadata });
+                    acc.push({ text: comment + separator, path: item.path, type: "annotation" });
+                    acc.push({ text: separator + splitText.slice(1).join(separator), path: item.path, type: typeOfMetadata });
                 } else {
-                    acc.push({ text: item.text, path: item.path, type: "error" });
-                    acc.push({ text: comment, path: item.path, type: "commented" });
+                    acc.push({ text: item.text, path: item.path, type: typeOfMetadata });
+                    acc.push({ text: comment, path: item.path, type: "annotation" });
                 }
                 return acc;
             }
-            acc.push({ text: item.text, path: item.path, type: "error" });
+            acc.push({ text: item.text, path: item.path, type: typeOfMetadata });
         } else {
             acc.push(item);
         }
         return acc;
     }, [] as LogItem[]);
     if (options.isDebug) {
-        console.debug("highlightErrorInMessage", { path, loggedParts, result });
+        console.debug("injectMetaDataToMessage", { path, loggedParts, result });
     }
     return result;
 }
 
-export function highlightErrorsInJson(data: DataObject, errors: {
-    path: string; text: string;
-}[], options: { multiline?: boolean, isDebug?: boolean; } = {}): LogItem[] {
+/**
+ * Method adds extra information in data object representation,
+ * e.g. could be used to mark some part of message as an error,
+ * additionally it could be annotated with text comment,
+ * This method is used for showing errors in JSON document when it is not satisfying to its JSON schema
+ **/
+export function annotateDataInJson(data: DataObject, annotations: LogItem[], options: { multiline?: boolean, isDebug?: boolean; } = {}): LogItem[] {
     let result = highlightPartsOfMessage(data, options);
-    errors.forEach(error => {
-        result = highlightErrorInMessage(result, error.path, options,
-            options.multiline ? " // " + error.text : ` /* ${error.text} */ `);
+    annotations.forEach(annotation => {
+        result = injectMetaDataToMessage(
+            result,
+            annotation.path,
+            options,
+            annotation.text.length ? (options.multiline ? " // " + annotation.text : ` /* ${annotation.text} */ `) : "",
+            annotation.type
+        );
     });
 
     if (options?.isDebug) {
