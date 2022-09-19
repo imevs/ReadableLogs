@@ -28,6 +28,11 @@ type FormattingOptions = {
      * if undefined is returned - message will not be formatted
      */
     getMessageType(input: DataObject, wholeLogMessage: any[], type: string): undefined | string;
+    /**
+     * allows to exclude specific not relevant parts of message, for better readability
+     * format in JSON path
+     */
+    excludeDataPathsFromMessage: string[];
 };
 
 /**
@@ -42,8 +47,10 @@ function enhanceLogger(logFunction: typeof console.log, options: FormattingOptio
             if (logPart !== null && typeof logPart === "object") {
                 const id = options.getMessageType(logPart as DataObject, args, type);
                 if (id !== undefined) {
-                    const result = highlightPartsOfMessage(logPart as DataObject,
-                        { showDiffWithObject: oldMessages[id], multiline: options.multiline });
+                    const result = highlightPartsOfMessage(logPart as DataObject, {
+                        showDiffWithObject: oldMessages[id],
+                        multiline: options.multiline,
+                    }).filter(part => options.excludeDataPathsFromMessage.indexOf(part.path) !== -1);
                     oldMessages[id] = logPart as DataObject;
                     logFunction(...formatForLoggingInBrowser(options.prefix, result, [], options.colorsMap));
                 }
@@ -63,6 +70,7 @@ const formattingOptions: FormattingOptions = {
     multiline: passedFormattingOptions?.multiline ?? false,
     mode: passedFormattingOptions?.mode ?? "overrideConsole",
     getMessageType: passedFormattingOptions?.getMessageType ?? (logPart => Object.keys(logPart)[0]),
+    excludeDataPathsFromMessage: passedFormattingOptions?.excludeDataPathsFromMessage ?? [],
     prefix: passedFormattingOptions?.prefix ?? "formatted json: "
 };
 
