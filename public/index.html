@@ -1,36 +1,51 @@
 <script src="./require.js"></script>
 <script>
-    require(['scripts/demo'], () => {});
+    require(["scripts/demo"], () => {
+    });
 </script>
 <h1>Welcome to ReadableLogs demo page!</h1>
 <h2>Open dev console in your browser to view the output for demo</h2>
 
 <h3>Main loggable message</h3>
-<div id="demo_input_currentMessage" style="border: 1px solid black; width: 100%; height: 150px; overflow-y: scroll; " contenteditable="true">
+<div id="demo_input_currentMessage"
+     style="border: 1px solid black; width: 100%; height: 150px; overflow-y: scroll; "
+     contenteditable="true">
 </div>
 
 <h3>Previous message (is needed for tracking changes in loggable message)</h3>
-<div id="demo_input_prevMessage" style="border: 1px solid black; width: 100%; height: 100px; overflow-y: scroll;" contenteditable="true"></div>
+<div id="demo_input_prevMessage"
+     style="border: 1px solid black; width: 100%; height: 100px; overflow-y: scroll;"
+     contenteditable="true"></div>
 
 
 <div id="error" style="color: red;"></div>
-<button id="run">Format JSON</button>
-<label for="multiline">Format multiline: </label>
-<input type="checkbox" id="multiline">
-
+<p>
+    <button id="run">Format JSON</button>
+</p>
+<p>
+    <label for="multiline">Format multiline: </label>
+    <input type="checkbox" id="multiline">
+</p>
+<p>
+    <label for="multiline">Convert JSON to YAML (experimental): </label>
+    <input type="checkbox" id="yaml">
+</p>
 <script>
     setTimeout(() => {
         /* For demo of userScripts/logAndFormatWebSocketJSON.js - after installing user script it will JSON messages in WS */
-        const wsClient = new WebSocket('wss://ws.postman-echo.com/raw');
+        const wsClient = new WebSocket("wss://ws.postman-echo.com/raw");
         wsClient.onopen = function () {
-            console.log('WS opens');
-            wsClient.send('WS opens');
-            wsClient.onmessage = function (event) {}
+            console.log("WS opens");
+            wsClient.send("WS opens");
+            wsClient.onmessage = function (event) {};
 
             setInterval(() => {
                 const key = Math.round(Math.random() * 10);
-                wsClient.send(JSON.stringify({ "a": Math.round(Math.random() * 10), ["b" + key]: Math.round(Math.random() * 10) }));
+                wsClient.send(JSON.stringify({
+                    "a": Math.round(Math.random() * 10),
+                    ["b" + key]: Math.round(Math.random() * 10)
+                }));
             }, 2000);
-        }
+        };
     }, 1000);
 </script>
