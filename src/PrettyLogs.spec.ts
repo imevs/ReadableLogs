@@ -1,6 +1,6 @@
 import chai from "chai";
 const assert = chai.assert;
-import { annotateDataInJson, highlightJsonParts, parseMessage } from "./index";
+import { annotateDataInJson, highlightJsonParts, mergeLogItems, parseMessage } from "./index";
 
 describe("PrettyLogs", () => {
     describe("parseMessage", () => {
@@ -264,6 +264,34 @@ describe("PrettyLogs", () => {
                 { text: " /* should be string */ ", path: "/a/b/c", type: "annotation" },
                 { text: '"d":3}}}', path: "/a/b/d", type: "error" },
                 { text: " /* should be boolean */ ", path: "/a/b/d", type: "annotation" }
+            ]);
+        });
+    });
+
+    describe("mergeLogItems", () => {
+
+        it("should merge text with same type and path", () => {
+            assert.deepEqual(mergeLogItems([
+                { "text": "{\n  ", "type": "specialSymbols", "path": "" },
+                { "text": "\"foo\"", "type": "key", "path": "/foo" },
+                { "text": ": ", "type": "specialSymbols", "path": "/foo" },
+                { "text": "1", "type": "value", "path": "/foo" },
+                { "text": ",\n  ", "type": "specialSymbols", "path": "/foo" },
+                { "text": "\"bar\"", "path": "/bar", "type": "error" },
+                { "text": ": ", "path": "/bar", "type": "error" },
+                { "text": "4343", "path": "/bar", "type": "error" },
+                { "text": "", "path": "/bar", "type": "error" },
+                { "text": " // must be string\n", "path": "/bar", "type": "annotation" },
+                { "text": "\n}", "path": "/bar", "type": "error" }
+            ]), [
+                { "path": "", "text": "{\n  ", "type": "specialSymbols" },
+                { "path": "/foo", "text": "\"foo\"", "type": "key" },
+                { "path": "/foo", "text": ": ", "type": "specialSymbols" },
+                { "path": "/foo", "text": "1", "type": "value" },
+                { "path": "/foo", "text": ",\n  ", "type": "specialSymbols" },
+                { "path": "/bar", "text": "\"bar\": 4343", "type": "error" },
+                { "path": "/bar", "text": " // must be string\n", "type": "annotation" },
+                { "path": "/bar", "text": "\n}", "type": "error" }
             ]);
         });
     });

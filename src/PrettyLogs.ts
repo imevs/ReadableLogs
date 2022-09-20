@@ -165,15 +165,15 @@ function highlightSubMessage(
 }
 
 function injectMetaDataToMessage(
-    loggedParts: LogItem[],
+    input: LogItem[],
     path: string,
     options: Options,
     comment: string,
     typeOfMetadata: FormattingType,
 ): LogItem[] {
-    const numberOfParts = loggedParts.filter(part => part.path.startsWith(path)).length;
+    const numberOfParts = input.filter(part => part.path.startsWith(path)).length;
     let i = 0;
-    const result = loggedParts.reduce((acc, item) => {
+    const result = input.reduce((acc, item) => {
         if (item.path.startsWith(path)) {
             i++;
             if (comment !== "" && numberOfParts === i) {
@@ -181,11 +181,11 @@ function injectMetaDataToMessage(
                     const separator = "\n";
                     const splitText = item.text.split(separator);
                     acc.push({ text: splitText[0]!, path: item.path, type: typeOfMetadata });
-                    acc.push({ text: comment + separator, path: item.path, type: "annotation" });
+                    acc.push({ text: comment + separator, path: path, type: "annotation" });
                     acc.push({ text: separator + splitText.slice(1).join(separator), path: item.path, type: typeOfMetadata });
                 } else {
                     acc.push({ text: item.text, path: item.path, type: typeOfMetadata });
-                    acc.push({ text: comment, path: item.path, type: "annotation" });
+                    acc.push({ text: comment, path: path, type: "annotation" });
                 }
                 return acc;
             }
@@ -196,7 +196,7 @@ function injectMetaDataToMessage(
         return acc;
     }, [] as LogItem[]);
     if (options.isDebug) {
-        console.debug("injectMetaDataToMessage", { path, loggedParts, result });
+        console.debug("injectMetaDataToMessage", { path, input, result });
     }
     return result;
 }
@@ -220,7 +220,7 @@ export function annotateDataInJson(data: DataObject, annotations: LogItem[], opt
     });
 
     if (options?.isDebug) {
-        console.debug("highlightErrorsInJson", mergeLogItems(result));
+        console.debug("annotateDataInJson", JSON.stringify(result), mergeLogItems(result));
     }
     return mergeLogItems(result);
 }
@@ -229,15 +229,13 @@ export function annotateDataInJson(data: DataObject, annotations: LogItem[], opt
  * merge text content for consequent elements with same type and path
  * @param logParts
  */
-function mergeLogItems(logParts: LogItem[]): LogItem[] {
+export function mergeLogItems(logParts: LogItem[]): LogItem[] {
     return logParts.reduce<LogItem[]>((all, item) => {
-        if (all.length > 1 &&
-            all[all.length - 1]!.type === item.type &&
-            all[all.length - 1]!.path === item.path
-        ) {
-            all[all.length - 1]!.text += item.text;
+        const prevItem = all[all.length - 1];
+        if (all.length > 1 && prevItem && prevItem.type === item.type && prevItem.path === item.path) {
+            prevItem.text += item.text;
         } else {
-            all.push(item);
+            all.push({...item });
         }
         return all;
     }, []);
