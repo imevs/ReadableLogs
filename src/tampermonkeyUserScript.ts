@@ -1,5 +1,5 @@
-import { highlightPartsOfMessage, formatForLoggingInBrowser, safeParse, annotateDataInJson } from "./index";
-import { DataObject, DataObjectValues, FormattingType } from "./types";
+import { formatForLoggingInBrowser, safeParse, annotateDataInJson } from "./index";
+import { DataObject, DataObjectValues, FormattingType, LogItem } from "./types";
 
 type FormattingOptions = {
     mode: "overrideConsole" | "overrideWebsocket";
@@ -33,6 +33,7 @@ type FormattingOptions = {
      * format in JSON path
      */
     excludeDataPathsFromMessage: string[];
+    validate(input: DataObject): LogItem[];
 };
 
 /**
@@ -47,8 +48,9 @@ function enhanceLogger(logFunction: typeof console.log, options: FormattingOptio
             if (logPart !== null && typeof logPart === "object") {
                 const id = options.getMessageType(logPart as DataObject, args, type);
                 if (id !== undefined) {
-                    const result = highlightPartsOfMessage(logPart as DataObject, {
-                        showDiffWithObject: oldMessages[id],
+                    const annotations = options.validate(logPart as DataObject);
+                    const result = annotateDataInJson(logPart as DataObject, annotations, {
+                        showDiffWithObject: annotations.length ? undefined : oldMessages[id],
                         multiline: options.multiline,
                     });
                     const filteredResult = options.excludeDataPathsFromMessage.length
@@ -73,6 +75,7 @@ const formattingOptions: FormattingOptions = {
     multiline: passedFormattingOptions?.multiline ?? false,
     mode: passedFormattingOptions?.mode ?? "overrideConsole",
     getMessageType: passedFormattingOptions?.getMessageType ?? (logPart => Object.keys(logPart)[0]),
+    validate: passedFormattingOptions?.validate ?? (() => ([])),
     excludeDataPathsFromMessage: passedFormattingOptions?.excludeDataPathsFromMessage ?? [],
     prefix: passedFormattingOptions?.prefix ?? "formatted json: "
 };

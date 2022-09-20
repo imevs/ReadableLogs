@@ -207,7 +207,7 @@ function injectMetaDataToMessage(
  * additionally it could be annotated with text comment,
  * This method is used for showing errors in JSON document when it is not satisfying to its JSON schema
  **/
-export function annotateDataInJson(data: DataObject, annotations: LogItem[], options: { multiline?: boolean, isDebug?: boolean; } = {}): LogItem[] {
+export function annotateDataInJson(data: DataObject, annotations: LogItem[], options: Options = {}): LogItem[] {
     let result = highlightPartsOfMessage(data, options);
     annotations.forEach(annotation => {
         result = injectMetaDataToMessage(
