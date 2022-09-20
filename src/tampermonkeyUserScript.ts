@@ -50,9 +50,12 @@ function enhanceLogger(logFunction: typeof console.log, options: FormattingOptio
                     const result = highlightPartsOfMessage(logPart as DataObject, {
                         showDiffWithObject: oldMessages[id],
                         multiline: options.multiline,
-                    }).filter(part => options.excludeDataPathsFromMessage.indexOf(part.path) !== -1);
+                    });
+                    const filteredResult = options.excludeDataPathsFromMessage.length
+                        ? result.filter(part => options.excludeDataPathsFromMessage.indexOf(part.path) === -1)
+                        : result;
                     oldMessages[id] = logPart as DataObject;
-                    logFunction(...formatForLoggingInBrowser(options.prefix, result, [], options.colorsMap));
+                    logFunction(...formatForLoggingInBrowser(options.prefix, filteredResult, [], options.colorsMap));
                 }
             }
             return logPart;

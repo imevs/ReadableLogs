@@ -16,7 +16,7 @@ function executeFormatter(data: typeof logs) {
 
     const result = parseMessage(
         data.current,
-        yaml ? { yaml: true } : { showDiffWithObject: data.prevObject, multiline: multiline },
+        yaml ? { yaml: true } : { showDiffWithObject: data.prevObject, multiline: multiline, isDebug: true },
     );
     console.info(...formatForLoggingInBrowser("Formatted message 2: ", result));
 
