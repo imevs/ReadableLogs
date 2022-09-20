@@ -1,4 +1,4 @@
-import { highlightPartsOfMessage, formatForLoggingInBrowser, safeParse } from "./index";
+import { highlightPartsOfMessage, formatForLoggingInBrowser, safeParse, annotateDataInJson } from "./index";
 import { DataObject, DataObjectValues, FormattingType } from "./types";
 
 type FormattingOptions = {
@@ -133,3 +133,6 @@ if (formattingOptions.mode === "overrideConsole") {
         console.log("WebSocket methods are not replaced");
     }
 }
+
+(window as any).annotateDataInJson = annotateDataInJson;
+(window as any).formatForLoggingInBrowser = formatForLoggingInBrowser;
