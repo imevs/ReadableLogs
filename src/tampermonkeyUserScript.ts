@@ -33,6 +33,11 @@ type FormattingOptions = {
      * format in JSON path
      */
     excludeDataPathsFromMessage: string[];
+    /**
+     * Returns list of errors in structure of JSON object,
+     * it is then used to add metadata to the logged messages
+     * @param input
+     */
     validate(input: DataObject): LogItem[];
 };
 
@@ -116,7 +121,7 @@ if (formattingOptions.mode === "overrideConsole") {
             const prefix = formattingOptions.prefix;
 
             if (data.data.length > formattingOptions.maxMessageSize) {
-                console.log(prefix, data);
+                console.log(prefix, data.data);
                 return data;
             }
             const json = safeParse(data.data);
