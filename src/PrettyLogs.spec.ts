@@ -10,6 +10,16 @@ describe("PrettyLogs", () => {
             assert.equal(result.map(i => i.text).join(""), JSON.stringify(message));
         });
 
+        it("should not highlight keys", () => {
+            assert.deepEqual(parseMessage({ "a42": 4 }, { isDebug: true }), [
+                { text: "{", type: "specialSymbols", path: "" },
+                { text: '"a42"', type: "key", path: "/a42" },
+                { text: ":", type: "specialSymbols", path: "/a42" },
+                { text: "4", type: "value", path: "/a42" },
+                { text: "}", type: "specialSymbols", path: "/a42" }
+            ]);
+        });
+
         it("should parse JSON object", () => {
             assert.deepEqual(parseMessage({ "a": 1 }), [
                 { path: "", text: "{", type: "specialSymbols" },

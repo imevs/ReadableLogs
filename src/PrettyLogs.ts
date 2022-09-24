@@ -134,6 +134,10 @@ function highlightSubMessage(
     options: Options
 ): LogItem[] {
     const result = loggedParts.reduce((acc, item) => {
+        if (item.type === "key") {
+            acc.push(item);
+            return acc;
+        }
         const SPLIT_MESSAGE_LENGTH = 2;
         const parts = item.text.split(partMsgString).filter(part => part !== "");
         if (!isDifference && parts.length >= SPLIT_MESSAGE_LENGTH ||
