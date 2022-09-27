@@ -11,7 +11,7 @@ describe("formattingUtils", () => {
             const message = { a: 1, c: { b: "2" } };
             const result = parseMessage(message);
             assert.deepEqual(formatForLoggingInBrowser("", result), [
-                '%c{%c"a"%c:%c1%c,%c"c"%c:{%c"b"%c:"%c2%c"}}',
+                '%c{%c"a"%c:%c1%c,%c"c"%c:{%c"b"%c:%c"2"%c}}',
                 "",
                 "color: orange;",
                 "",

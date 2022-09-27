@@ -10,9 +10,9 @@ describe("PrettyLogs", () => {
             assert.equal(result.map(i => i.text).join(""), JSON.stringify(message));
         });
 
-        it("should not highlight keys", () => {
-            assert.deepEqual(parseMessage({ "a42": 4 }, { isDebug: true }), [
-                { text: "{", type: "specialSymbols", path: "" },
+        it("should not highlight values in keys", () => {
+            assert.deepEqual(parseMessage({ "a42": 4 }), [
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a42"', type: "key", path: "/a42" },
                 { text: ":", type: "specialSymbols", path: "/a42" },
                 { text: "4", type: "value", path: "/a42" },
@@ -20,9 +20,23 @@ describe("PrettyLogs", () => {
             ]);
         });
 
+        it("should not highlight values in other values", () => {
+            assert.deepEqual(parseMessage({ "a": "123", "b": "2" }), [
+                { text: "{", type: "specialSymbols", path: "root" },
+                { text: '"a"', type: "key", path: "/a" },
+                { text: ":", type: "specialSymbols", path: "/a" },
+                { text: '"123"', type: "value", path: "/a" },
+                { text: ",", type: "specialSymbols", path: "/a" },
+                { text: '"b"', type: "key", path: "/b" },
+                { text: ":", type: "specialSymbols", path: "/b" },
+                { text: '"2"', type: "value", path: "/b" },
+                { text: "}", type: "specialSymbols", path: "/b" }
+            ]);
+        });
+
         it("should parse JSON object", () => {
             assert.deepEqual(parseMessage({ "a": 1 }), [
-                { path: "", text: "{", type: "specialSymbols" },
+                { path: "root", text: "{", type: "specialSymbols" },
                 { path: "/a", text: '"a"', type: "key" },
                 { path: "/a", text: ":", type: "specialSymbols" },
                 { path: "/a", text: "1", type: "value" },
@@ -33,7 +47,7 @@ describe("PrettyLogs", () => {
         it("should parse JSON object with changed attr", () => {
             const prevObject = { a: 2 };
             assert.deepEqual(parseMessage({ "a": 1 }, { showDiffWithObject: prevObject }), [
-                { path: "", text: "{", type: "specialSymbols" },
+                { path: "root", text: "{", type: "specialSymbols" },
                 { path: "/a", text: '"a"', type: "key" },
                 { path: "/a", text: ":", type: "specialSymbols" },
                 { path: "/a", text: "1", type: "changed" },
@@ -44,7 +58,7 @@ describe("PrettyLogs", () => {
         it("should parse JSON object with added attr", () => {
             const prevObject = {};
             assert.deepEqual(parseMessage({ "a": 1 }, { showDiffWithObject: prevObject }), [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a":1}', path: "/a", type: "added" },
             ]);
         });
@@ -53,7 +67,7 @@ describe("PrettyLogs", () => {
             const prevObject = { a: [] };
             const result = parseMessage({ a: [{b: 1}, { b: 2 }] }, { showDiffWithObject: prevObject });
             assert.deepEqual(result, [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":[{", type: "specialSymbols", path: "/a" },
                 { text: '"b":1},{', path: "/a/0/b", type: "added" },
@@ -64,7 +78,7 @@ describe("PrettyLogs", () => {
         it("should parse JSON object with changed sub object", () => {
             const prevObject = { a: { c: 1 }};
             assert.deepEqual(parseMessage({ "a": { c: 2 } }, { showDiffWithObject: prevObject }), [
-                { path: "", text: "{", type: "specialSymbols" },
+                { path: "root", text: "{", type: "specialSymbols" },
                 { path: "/a", text: '"a"', type: "key" },
                 { path: "/a", text: ":{", type: "specialSymbols" },
                 { path: "/a/c", text: '"c"', type: "key" },
@@ -77,7 +91,7 @@ describe("PrettyLogs", () => {
         it("should parse JSON object with added attribute in sub object", () => {
             const prevObject = { a: { }};
             assert.deepEqual(parseMessage({ "a": { c: 2 } }, { showDiffWithObject: prevObject }), [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":{", type: "specialSymbols", path: "/a" },
                 { text: '"c":2}}', path: "/a/c", type: "added" },
@@ -87,11 +101,11 @@ describe("PrettyLogs", () => {
         it("should highlight correctly keys in not changed object", () => {
             const prevObject = { e: "2", a: { c: { d: 1 } }};
             assert.deepEqual(parseMessage({ e: "2", a: { c: { d: 1 } }}, { showDiffWithObject: prevObject }), [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"e"', type: "key", path: "/e" },
-                { text: ':"', type: "specialSymbols", path: "/e" },
-                { text: "2", type: "value", path: "/e" },
-                { text: '",', type: "specialSymbols", path: "/e" },
+                { text: ":", type: "specialSymbols", path: "/e" },
+                { text: '"2"', type: "value", path: "/e" },
+                { text: ",", type: "specialSymbols", path: "/e" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":{", type: "specialSymbols", path: "/a" },
                 { text: '"c"', type: "key", path: "/a/c" },
@@ -105,7 +119,7 @@ describe("PrettyLogs", () => {
 
         it("should highlight correctly multiple keys in deep object", () => {
             assert.deepEqual(parseMessage({ a: { c: [{ d: 1 }, { d: 2 }] }}), [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":{", type: "specialSymbols", path: "/a" },
                 { text: '"c"', type: "key", path: "/a/c" },
@@ -124,7 +138,7 @@ describe("PrettyLogs", () => {
         it("should correctly highlight changes in modified object", () => {
             const prevObject = { a: 2, c: { e: 1 }};
             assert.deepEqual(parseMessage({ a: 1, c: { e: 1 }}, { showDiffWithObject: prevObject }), [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":", type: "specialSymbols", path: "/a" },
                 { text: "1", path: "/a", type: "changed" },
@@ -150,15 +164,15 @@ describe("PrettyLogs", () => {
                 c: [{ a: 6 }, { a: 7 }]
             };
             assert.deepEqual(parseMessage(current, { showDiffWithObject: prevObject }), [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', path: "/a", type: "key" },
                 { text: ":", type: "specialSymbols", path: "/a" },
                 { text: "4", path: "/a", type: "changed" },
                 { text: ",", type: "specialSymbols", path: "/a" },
                 { text: '"b"', type: "key", path: "/b" },
-                { text: ':"', type: "specialSymbols", path: "/b" },
-                { text: "5", type: "value", path: "/b" },
-                { text: '",', type: "specialSymbols", path: "/b" },
+                { text: ":", type: "specialSymbols", path: "/b" },
+                { text: '"5"', type: "changed", path: "/b" },
+                { text: ",", type: "specialSymbols", path: "/b" },
                 { text: '"c"', type: "key", path: "/c" },
                 { text: ":[{", type: "specialSymbols", path: "/c" },
                 { text: '"a":6},{', path: "/c/0/a", type: "added" },
@@ -176,7 +190,7 @@ describe("PrettyLogs", () => {
             };
             const result = parseMessage(current, { showDiffWithObject: prevObject });
             assert.deepEqual(result, [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":", type: "specialSymbols", path: "/a" },
                 { text: "4", type: "value", path: "/a" },
@@ -190,7 +204,7 @@ describe("PrettyLogs", () => {
             const current = { b: { c: {} } };
             const result = parseMessage(current, { showDiffWithObject: prevObject });
             assert.deepEqual(result, [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"b"', type: "key", path: "/b" },
                 { text: ":{", type: "specialSymbols", path: "/b" },
                 { text: '"c"', type: "key", path: "/b/c" },
@@ -204,7 +218,7 @@ describe("PrettyLogs", () => {
             const current = { b: [{ a: 1} ] };
             const result = parseMessage(current, { showDiffWithObject: prevObject });
             assert.deepEqual(result, [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"b"', type: "key", path: "/b" },
                 { text: ":[{", type: "specialSymbols", path: "/b" },
                 { text: '"a"', type: "key", path: "/b/0/a" },
@@ -224,7 +238,7 @@ describe("PrettyLogs", () => {
             }, "/a/b/c");
 
             assert.deepEqual(result, [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":{", type: "specialSymbols", path: "/a" },
                 { text: '"b"', type: "key", path: "/a/b" },
@@ -245,7 +259,7 @@ describe("PrettyLogs", () => {
                 { text: "should be boolean", path: "/a/b/d", type: "error" }
             ], { multiline: true });
             assert.deepEqual(result, [
-                { text: "{\n  ", type: "specialSymbols", path: "" },
+                { text: "{\n  ", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ": {\n    ", type: "specialSymbols", path: "/a" },
                 { text: '"b"', type: "key", path: "/a/b" },
@@ -265,7 +279,7 @@ describe("PrettyLogs", () => {
                 { text: "should be boolean", path: "/a/b/d", type: "error" }
             ], { multiline: false });
             assert.deepEqual(result, [
-                { text: "{", type: "specialSymbols", path: "" },
+                { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":{", type: "specialSymbols", path: "/a" },
                 { text: '"b"', type: "key", path: "/a/b" },

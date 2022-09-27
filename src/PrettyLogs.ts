@@ -1,7 +1,7 @@
 import { DataObject, DataObjectValues, FormattingType, LogItem } from "./types";
 
-function isDifferent<T extends DataObjectValues>(obj1: T, obj2: T) {
-    return JSON.stringify(obj1) !== JSON.stringify(obj2);
+function isEqual<T extends DataObjectValues>(obj1: T, obj2: T) {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
 }
 
 export type Options = {
@@ -12,7 +12,7 @@ export type Options = {
 
 export const pathSeparator = "/";
 function getNewPath(oldPath: string, key: string) {
-    return oldPath + pathSeparator + key;
+    return (oldPath === "root" ? "" : oldPath) + pathSeparator + key;
 }
 
 function serializeData(message: DataObjectValues, options: Options) {
@@ -28,7 +28,7 @@ function serializeData(message: DataObjectValues, options: Options) {
  *
  * Example:
  *  { "a": 1 } -> [
- *                 { path: "", text: "{", type: "specialSymbols" },
+ *                 { path: "root", text: "{", type: "specialSymbols" },
  *                 { path: "/a", text: '"a"', type: "key" },
  *                 { path: "/a", text: ":", type: "specialSymbols" },
  *                 { path: "/a", text: "1", type: "value" },
@@ -36,16 +36,16 @@ function serializeData(message: DataObjectValues, options: Options) {
  *             ]
  **/
 export function highlightPartsOfMessage<T extends DataObject>(message: T, options: Options): LogItem[] {
-    let result: LogItem[] = [{ text: serializeData(message, options), type: "unknown", path: "" }];
-    result = highlightSubObjectKeys(message, result, "", options);
+    let result: LogItem[] = [{ text: serializeData(message, options), type: "unknown", path: "root" }];
+    result = highlightSubObjectKeysAndValues(message, result, "root", options);
     result.forEach((item, index) => {
-        if (item.path === "" && index > 0) {
+        if (item.path === "root" && index > 0) {
             item.path = result[index - 1]!.path;
         }
     });
     if (options.showDiffWithObject !== undefined) {
-        result = highlightSubObject(message, options.showDiffWithObject, result, "", options);
-        result = searchForRemovedData(message, options.showDiffWithObject, result, "", options);
+        result = highlightSubObject(message, options.showDiffWithObject, result, "root", options);
+        result = searchForRemovedData(message, options.showDiffWithObject, result, "root", options);
     }
     return mergeLogItems(result);
 }
@@ -60,13 +60,13 @@ function highlightSubObject<T extends DataObject>(
             const subObjectPart = subObject[key];
             const updatedPath = getNewPath(path, key);
             if (prevObject[key] !== undefined) {
-                if (isDifferent(subObjectPart, prevObject[key])) {
+                if (!isEqual(subObjectPart, prevObject[key])) {
                     if (typeof subObjectPart === "object" && subObjectPart !== null) {
                         result = highlightSubObject(subObjectPart as DataObject,
                             prevObject[key] as DataObject, result, updatedPath, options);
                     } else {
                         result = highlightSubMessage(
-                            serializeData(subObjectPart, options), result, "changed", true, updatedPath, options);
+                            serializeData(subObjectPart, options), result, "changed", updatedPath, options);
                     }
                 }
             } else {
@@ -96,17 +96,17 @@ function searchForRemovedData<T extends DataObject>(
     return result;
 }
 
-function highlightSubObjectKeys<T extends DataObject>(subObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
+function highlightSubObjectKeysAndValues<T extends (DataObject)>(subObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
     let result = [...loggedParts];
     Object.keys(subObject).forEach((key) => {
         const newPath = getNewPath(path, key);
         const subMessageValue = subObject[key];
-        result = highlightSubMessage(`"${key}"`, result, "key", false, newPath, options);
+        result = highlightSubMessage(`"${key}"`, result, "key", newPath, options);
         if (subMessageValue !== null) {
             if (typeof subMessageValue === "object") {
-                result = highlightSubObjectKeys(subMessageValue as DataObject, result, newPath, options);
+                result = highlightSubObjectKeysAndValues(subMessageValue as DataObject, result, newPath, options);
             } else {
-                result = highlightSubMessage(`${subMessageValue}`, result, "value", false, newPath, options);
+                result = highlightSubMessage(JSON.stringify(subMessageValue), result, "value", newPath, options);
             }
         }
     });
@@ -128,35 +128,33 @@ export function highlightAddedSubMessage(
 function highlightSubMessage(
     partMsgString: string,
     loggedParts: LogItem[],
-    type: "key" | "changed" | "removed" | "specialSymbols" | "value",
-    isDifference: boolean,
+    type: "key" | "changed" | "value",
     path: string,
     options: Options
 ): LogItem[] {
     const result = loggedParts.reduce((acc, item) => {
-        if (item.type === "key") {
+        if (item.type === "key" || type === "value" && item.path !== "root" && item.path !== path && !item.path.startsWith(path)) {
             acc.push(item);
             return acc;
         }
-        const SPLIT_MESSAGE_LENGTH = 2;
         const parts = item.text.split(partMsgString).filter(part => part !== "");
-        if (!isDifference && parts.length >= SPLIT_MESSAGE_LENGTH ||
-            isDifference && path.startsWith(item.path) && parts.length === SPLIT_MESSAGE_LENGTH
-        ) {
+        const entriesCount = parts.length - 1;
+        if (type === "changed" && entriesCount === 1 && path.startsWith(item.path)) {
+            const [first, ...rest] = parts;
             acc.push(
-                { text: parts[0] as string, type: "specialSymbols", path: item.path },
-            );
-            acc.push(
+                { text: first!, type: "specialSymbols", path: path },
                 { text: partMsgString, type: type, path: path },
-                { text: parts.slice(1).join(partMsgString) as string,
-                    type: "specialSymbols", path: isDifference ? path : "" }
+                { text: rest.join(partMsgString), type: "specialSymbols", path: path }
+            );
+        } else if (type !== "changed" && entriesCount >= 1) {
+            const [first, ...rest] = parts;
+            acc.push(
+                { text: first!, type: "specialSymbols", path: item.path },
+                { text: partMsgString, type: type, path: path },
+                { text: rest.join(partMsgString), type: "specialSymbols", path: "root" }
             );
         } else if (partMsgString === item.text) {
-            acc.push({
-                text: item.text,
-                path: item.path,
-                type: type,
-            });
+            acc.push({ text: item.text, path: item.path, type: type });
         } else {
             acc.push(item);
         }
