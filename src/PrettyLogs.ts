@@ -53,25 +53,24 @@ export function highlightPartsOfMessage<T extends DataObject>(message: T, option
 function highlightSubObject<T extends DataObject>(
     subObject: T, prevObject: T, loggedParts: LogItem[], path: string, options: Options): LogItem[] {
     let result = [...loggedParts];
+    if (prevObject === undefined) {
+        return result;
+    }
     Object.keys(subObject).forEach((key) => {
-        if (prevObject === undefined) {
-            return;
-        } else {
-            const subObjectPart = subObject[key];
-            const updatedPath = getNewPath(path, key);
-            if (prevObject[key] !== undefined) {
-                if (!isEqual(subObjectPart, prevObject[key])) {
-                    if (typeof subObjectPart === "object" && subObjectPart !== null) {
-                        result = highlightSubObject(subObjectPart as DataObject,
-                            prevObject[key] as DataObject, result, updatedPath, options);
-                    } else {
-                        result = highlightSubMessage(
-                            serializeData(subObjectPart, options), result, "changed", updatedPath, options);
-                    }
+        const subObjectPart = subObject[key];
+        const updatedPath = getNewPath(path, key);
+        if (prevObject[key] !== undefined) {
+            if (!isEqual(subObjectPart, prevObject[key])) {
+                if (typeof subObjectPart === "object" && subObjectPart !== null) {
+                    result = highlightSubObject(subObjectPart as DataObject,
+                        prevObject[key] as DataObject, result, updatedPath, options);
+                } else {
+                    result = highlightSubMessage(
+                        serializeData(subObjectPart, options), result, "changed", updatedPath, options);
                 }
-            } else {
-                result = highlightAddedSubMessage(result, updatedPath, options);
             }
+        } else {
+            result = highlightAddedSubMessage(result, updatedPath, options);
         }
     });
     return result;
@@ -101,7 +100,9 @@ function highlightSubObjectKeysAndValues<T extends (DataObject)>(subObject: T, l
     Object.keys(subObject).forEach((key) => {
         const newPath = getNewPath(path, key);
         const subMessageValue = subObject[key];
-        result = highlightSubMessage(`"${key}"`, result, "key", newPath, options);
+        if (!Array.isArray(subObject)) {
+            result = highlightSubMessage(`"${key}"`, result, "key", newPath, options);
+        }
         if (subMessageValue !== null) {
             if (typeof subMessageValue === "object") {
                 result = highlightSubObjectKeysAndValues(subMessageValue as DataObject, result, newPath, options);
