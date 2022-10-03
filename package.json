@@ -1,6 +1,6 @@
 {
   "name": "readable-json-log",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Utility formats logs for browser console in more readable way (highlights changes and adds colors to JSON representation)",
   "main": "dist/index.js",
   "scripts": {

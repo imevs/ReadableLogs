@@ -26,7 +26,7 @@ define(["require", "exports", "./yamlSupport", "./PrettyLogs", "./PrettyLogs", "
     }
     exports.parseMessage = parseMessage;
     function highlightJsonParts(data, path, options = {}) {
-        const result = PrettyLogs_1.highlightPartByPath(data, path, options);
+        const result = PrettyLogs_1.highlightAddedSubMessage(PrettyLogs_1.highlightPartsOfMessage(data, options), path, options);
         if (options === null || options === void 0 ? void 0 : options.isDebug) {
             console.debug("highlightJsonParts", result);
         }

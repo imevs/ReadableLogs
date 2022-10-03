@@ -1,13 +1,13 @@
 define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.highlightErrorsInJson = exports.highlightPartByPath = exports.highlightPartsOfMessage = exports.pathSeparator = void 0;
-    function isDifferent(obj1, obj2) {
-        return JSON.stringify(obj1) !== JSON.stringify(obj2);
+    exports.mergeLogItems = exports.annotateDataInJson = exports.highlightAddedSubMessage = exports.highlightPartsOfMessage = exports.pathSeparator = void 0;
+    function isEqual(obj1, obj2) {
+        return JSON.stringify(obj1) === JSON.stringify(obj2);
     }
     exports.pathSeparator = "/";
     function getNewPath(oldPath, key) {
-        return oldPath + exports.pathSeparator + key;
+        return (oldPath === "root" ? "" : oldPath) + exports.pathSeparator + key;
     }
     function serializeData(message, options) {
         if (options.multiline) {
@@ -18,111 +18,107 @@ define(["require", "exports"], function (require, exports) {
         }
     }
     function highlightPartsOfMessage(message, options) {
-        let res = [{ text: serializeData(message, options), type: "", path: "" }];
-        res = highlightSubObjectKeys(message, res, "", options);
-        res.forEach((item, index) => {
-            if (item.path === "" && index > 0) {
-                item.path = res[index - 1].path;
+        let result = [{ text: serializeData(message, options), type: "unknown", path: "root" }];
+        result = highlightSubObjectKeysAndValues(message, result, "root", options);
+        result.forEach((item, index) => {
+            if (item.path === "root" && index > 0) {
+                item.path = result[index - 1].path;
             }
         });
         if (options.showDiffWithObject !== undefined) {
-            res = highlightSubObject(message, options.showDiffWithObject, res, "", options);
-            res = searchForRemovedData(message, options.showDiffWithObject, res, "", options);
+            result = highlightSubObject(message, options.showDiffWithObject, result, "root", options);
+            result = searchForRemovedData(message, options.showDiffWithObject, result, "root", options);
         }
-        return res;
+        return mergeLogItems(result);
     }
     exports.highlightPartsOfMessage = highlightPartsOfMessage;
-    function highlightPartByPath(message, path, options) {
-        const res = highlightPartsOfMessage(message, options);
-        return highlightAddedSubMessage(res, path, options);
-    }
-    exports.highlightPartByPath = highlightPartByPath;
     function highlightSubObject(subObject, prevObject, loggedParts, path, options) {
-        let res = [...loggedParts];
+        let result = [...loggedParts];
+        if (prevObject === undefined) {
+            return result;
+        }
         Object.keys(subObject).forEach((key) => {
-            if (prevObject === undefined) {
-                return;
-            }
-            else {
-                const subObjectPart = subObject[key];
-                const updatedPath = getNewPath(path, key);
-                if (prevObject[key] !== undefined) {
-                    if (isDifferent(subObjectPart, prevObject[key])) {
-                        if (typeof subObjectPart === "object" && subObjectPart !== null) {
-                            res = highlightSubObject(subObjectPart, prevObject[key], res, updatedPath, options);
-                        }
-                        else {
-                            res = highlightSubMessage(serializeData(subObjectPart, options), res, "changed", true, updatedPath, options);
-                        }
+            const subObjectPart = subObject[key];
+            const updatedPath = getNewPath(path, key);
+            if (prevObject[key] !== undefined) {
+                if (!isEqual(subObjectPart, prevObject[key])) {
+                    if (typeof subObjectPart === "object" && subObjectPart !== null) {
+                        result = highlightSubObject(subObjectPart, prevObject[key], result, updatedPath, options);
+                    }
+                    else {
+                        result = highlightSubMessage(serializeData(subObjectPart, options), result, "changed", updatedPath, options);
                     }
                 }
-                else {
-                    res = highlightAddedSubMessage(res, updatedPath, options);
-                }
+            }
+            else {
+                result = highlightAddedSubMessage(result, updatedPath, options);
             }
         });
-        return res;
+        return result;
     }
     function searchForRemovedData(subObject, prevObject, loggedParts, path, options) {
-        let res = [...loggedParts];
+        let result = [...loggedParts];
         Object.keys(prevObject).forEach(key => {
             const subMessage = subObject[key];
             const updatedPath = getNewPath(path, key);
             if (subMessage === undefined) {
-                res.push({
+                result.push({
                     type: "removed",
                     path: updatedPath,
                     text: serializeData(prevObject[key], options),
                 });
             }
             else if (typeof subMessage === "object" && subMessage !== null) {
-                res = searchForRemovedData(subMessage, prevObject[key], res, updatedPath, options);
+                result = searchForRemovedData(subMessage, prevObject[key], result, updatedPath, options);
             }
         });
-        return res;
+        return result;
     }
-    function highlightSubObjectKeys(subObject, loggedParts, path, options) {
+    function highlightSubObjectKeysAndValues(subObject, loggedParts, path, options) {
         let result = [...loggedParts];
         Object.keys(subObject).forEach((key) => {
             const newPath = getNewPath(path, key);
             const subMessageValue = subObject[key];
-            result = highlightSubMessage(`"${key}"`, result, "key", false, newPath, options);
-            if (typeof subMessageValue === "object" && subMessageValue !== null) {
-                result = highlightSubObjectKeys(subMessageValue, result, newPath, options);
+            if (!Array.isArray(subObject)) {
+                result = highlightSubMessage(`"${key}"`, result, "key", newPath, options);
+            }
+            if (subMessageValue !== null) {
+                if (typeof subMessageValue === "object") {
+                    result = highlightSubObjectKeysAndValues(subMessageValue, result, newPath, options);
+                }
+                else {
+                    result = highlightSubMessage(JSON.stringify(subMessageValue), result, "value", newPath, options);
+                }
             }
         });
         return result;
     }
     function highlightAddedSubMessage(loggedParts, path, options) {
-        const result = loggedParts.reduce((acc, item) => {
-            if (item.path.startsWith(path)) {
-                acc.push({ text: item.text, path: item.path, type: "added" });
-            }
-            else {
-                acc.push(item);
-            }
-            return acc;
-        }, []);
+        const result = injectMetaDataToMessage(loggedParts, path, options, "", "added");
         if (options.isDebug) {
             console.debug("highlightAddedSubMessage", { path, loggedParts, result });
         }
-        return result;
+        return mergeLogItems(result);
     }
-    function highlightSubMessage(partMsgString, loggedParts, type, isDifference, path, options) {
+    exports.highlightAddedSubMessage = highlightAddedSubMessage;
+    function highlightSubMessage(partMsgString, loggedParts, type, path, options) {
         const result = loggedParts.reduce((acc, item) => {
-            const SPLIT_MESSAGE_LENGTH = 2;
+            if (item.type === "key" || type === "value" && item.path !== "root" && item.path !== path && !item.path.startsWith(path)) {
+                acc.push(item);
+                return acc;
+            }
             const parts = item.text.split(partMsgString).filter(part => part !== "");
-            if (!isDifference && parts.length >= SPLIT_MESSAGE_LENGTH ||
-                isDifference && path.startsWith(item.path) && parts.length === SPLIT_MESSAGE_LENGTH) {
-                acc.push({ text: parts[0], type: "", path: item.path });
-                acc.push({ text: partMsgString, type: type, path: path }, { text: parts.slice(1).join(partMsgString), type: "", path: isDifference ? path : "" });
+            const entriesCount = parts.length - 1;
+            if (type === "changed" && entriesCount === 1 && path.startsWith(item.path)) {
+                const [first, ...rest] = parts;
+                acc.push({ text: first, type: "specialSymbols", path: path }, { text: partMsgString, type: type, path: path }, { text: rest.join(partMsgString), type: "specialSymbols", path: path });
+            }
+            else if (type !== "changed" && entriesCount >= 1) {
+                const [first, ...rest] = parts;
+                acc.push({ text: first, type: "specialSymbols", path: item.path }, { text: partMsgString, type: type, path: path }, { text: rest.join(partMsgString), type: "specialSymbols", path: "root" });
             }
             else if (partMsgString === item.text) {
-                acc.push({
-                    text: item.text,
-                    path: item.path,
-                    type: type,
-                });
+                acc.push({ text: item.text, path: item.path, type: type });
             }
             else {
                 acc.push(item);
@@ -134,27 +130,27 @@ define(["require", "exports"], function (require, exports) {
         }
         return result;
     }
-    function highlightErrorInMessage(loggedParts, path, options, comment) {
-        const numberOfParts = loggedParts.filter(part => part.path.startsWith(path)).length;
+    function injectMetaDataToMessage(input, path, options, comment, typeOfMetadata) {
+        const numberOfParts = input.filter(part => part.path.startsWith(path)).length;
         let i = 0;
-        const result = loggedParts.reduce((acc, item) => {
+        const result = input.reduce((acc, item) => {
             if (item.path.startsWith(path)) {
                 i++;
                 if (comment !== "" && numberOfParts === i) {
                     if (options.multiline) {
                         const separator = "\n";
                         const splitText = item.text.split(separator);
-                        acc.push({ text: splitText[0], path: item.path, type: "error" });
-                        acc.push({ text: comment + separator, path: item.path, type: "commented" });
-                        acc.push({ text: separator + splitText.slice(1).join(separator), path: item.path, type: "error" });
+                        acc.push({ text: splitText[0], path: item.path, type: typeOfMetadata });
+                        acc.push({ text: comment + separator, path: path, type: "annotation" });
+                        acc.push({ text: separator + splitText.slice(1).join(separator), path: item.path, type: typeOfMetadata });
                     }
                     else {
-                        acc.push({ text: item.text, path: item.path, type: "error" });
-                        acc.push({ text: comment, path: item.path, type: "commented" });
+                        acc.push({ text: item.text, path: item.path, type: typeOfMetadata });
+                        acc.push({ text: comment, path: path, type: "annotation" });
                     }
                     return acc;
                 }
-                acc.push({ text: item.text, path: item.path, type: "error" });
+                acc.push({ text: item.text, path: item.path, type: typeOfMetadata });
             }
             else {
                 acc.push(item);
@@ -162,19 +158,32 @@ define(["require", "exports"], function (require, exports) {
             return acc;
         }, []);
         if (options.isDebug) {
-            console.debug("highlightErrorInMessage", { path, loggedParts, result });
+            console.debug("injectMetaDataToMessage", { path, input, result });
         }
         return result;
     }
-    function highlightErrorsInJson(data, errors, options = {}) {
+    function annotateDataInJson(data, annotations, options = {}) {
         let result = highlightPartsOfMessage(data, options);
-        errors.forEach(error => {
-            result = highlightErrorInMessage(result, error.path, options, options.multiline ? " // " + error.text : ` /* ${error.text} */ `);
+        annotations.forEach(annotation => {
+            result = injectMetaDataToMessage(result, annotation.path, options, annotation.text.length ? (options.multiline ? " // " + annotation.text : ` /* ${annotation.text} */ `) : "", annotation.type);
         });
         if (options === null || options === void 0 ? void 0 : options.isDebug) {
-            console.debug("highlightErrorsInJson", result);
+            console.debug("annotateDataInJson", JSON.stringify(result), mergeLogItems(result));
         }
-        return result;
+        return mergeLogItems(result);
     }
-    exports.highlightErrorsInJson = highlightErrorsInJson;
+    exports.annotateDataInJson = annotateDataInJson;
+    function mergeLogItems(logParts) {
+        return logParts.reduce((all, item) => {
+            const prevItem = all[all.length - 1];
+            if (all.length > 1 && prevItem && prevItem.type === item.type && prevItem.path === item.path) {
+                prevItem.text += item.text;
+            }
+            else {
+                all.push(Object.assign({}, item));
+            }
+            return all;
+        }, []);
+    }
+    exports.mergeLogItems = mergeLogItems;
 });

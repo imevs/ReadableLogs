@@ -6,9 +6,7 @@ export declare type ApiOptions = {
 } | {
     isDebug?: true;
     showDiffWithObject?: DataObject;
-} | {
-    isDebug?: true;
-    multiline?: true;
+    multiline?: boolean;
 };
 export declare function parseMessage(data: DataObject, options?: ApiOptions): LogItem[];
 export declare function highlightJsonParts(data: DataObject, path: string, options?: {
