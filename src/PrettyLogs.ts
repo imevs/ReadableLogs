@@ -23,6 +23,19 @@ function serializeData(message: DataObjectValues, options: Options) {
     }
 }
 
+function getItemType(type: FormattingType, text: string): FormattingType {
+    if (type !== "value") {
+        return type;
+    }
+    if (!Number.isNaN(Number(text))) {
+        return "number";
+    }
+    if (text === "true" || text === "false") {
+        return "boolean";
+    }
+    return "string";
+}
+
 /**
  * Method analyzes provided message and builds its representation as array of sub-elements of different types
  *
@@ -47,7 +60,7 @@ export function highlightPartsOfMessage<T extends DataObject>(message: T, option
         result = highlightSubObject(message, options.showDiffWithObject, result, "root", options);
         result = searchForRemovedData(message, options.showDiffWithObject, result, "root", options);
     }
-    return mergeLogItems(result);
+    return mergeLogItems(result).map(item => ({ ...item, type: getItemType(item.type, item.text)}));
 }
 
 function highlightSubObject<T extends DataObject>(

@@ -1,4 +1,6 @@
-export type FormattingType = "key" | "added" | "changed" | "removed" | "value" | "annotation" | "error" | "specialSymbols" | "unknown";
+type ValuesType = "number" | "string" | "boolean";
+
+export type FormattingType = "key" | "added" | "changed" | "removed" | "value" | "annotation" | "error" | "specialSymbols" | "unknown" | ValuesType;
 export type LogItem = {
     text: string;
     type: FormattingType;

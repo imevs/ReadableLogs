@@ -4,6 +4,7 @@
   "description": "Utility formats logs for browser console in more readable way (highlights changes and adds colors to JSON representation)",
   "main": "dist/index.js",
   "scripts": {
+    "watch": "tsc --watch",
     "tsc": "tsc",
     "build": "tsc && tsc -p tsconfig.userscript.json",
     "dist": "tsc -p tsconfig.dist.json",

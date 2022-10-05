@@ -1,17 +1,29 @@
 import { FormattingType, LogItem } from "./types";
 
-type Color = "red" | "blue" | "pink" | "orange" | "green" | "lightgreen" | "";
+type Hex = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "A" | "B" | "C" | "D" | "E" | "F";
+type Color = "red" | "blue" | "pink" | "orange" | "green" | "lightgreen" | "" | `#${string}`;
+
+type ValidateHex<T extends Hex> = T;
+// @ts-expect-error "is declared but its value is never read."
+type ValidateColor<T extends string> = T extends `#${ValidateHex<infer D1>}${ValidateHex<infer D2>}${ValidateHex<infer D3>}${ValidateHex<infer D4>}${ValidateHex<infer D5>}${ValidateHex<infer D6>}` ? T : never;
+
+function color<T extends string>(s: ValidateColor<T>): T {
+    return s;
+}
 
 export const typeToColorMap: Record<FormattingType, Color> = {
     unknown: "",
     specialSymbols: "",
     value: "lightgreen",
-    key: "orange",
+    string: color("#008000"),
+    number: color("#0000FF"),
+    boolean: color("#000080"),
+    key: color("#660E6A"),
     added: "blue",
     changed: "green",
     removed: "red",
     error: "red",
-    annotation: "green",
+    annotation: color("#808080"),
 };
 
 function getColor(type: FormattingType): Color {

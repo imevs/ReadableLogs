@@ -13,15 +13,15 @@ describe("formattingUtils", () => {
             assert.deepEqual(formatForLoggingInBrowser("", result), [
                 '%c{%c"a"%c:%c1%c,%c"c"%c:{%c"b"%c:%c"2"%c}}',
                 "",
-                "color: orange;",
+                "color: #660E6A;",
                 "",
-                "color: lightgreen;",
+                "color: #0000FF;",
                 "",
-                "color: orange;",
+                "color: #660E6A;",
                 "",
-                "color: orange;",
+                "color: #660E6A;",
                 "",
-                "color: lightgreen;",
+                "color: #008000;",
                 "",
             ]);
         });
@@ -33,11 +33,11 @@ describe("formattingUtils", () => {
             assert.deepEqual(formatForLoggingInBrowser("", result), [
                 '%c{%c"b"%c:[{%c"a"%c:%c1%c}]}%c Removed: %c.b.1:{"a":2}',
                 "",
-                "color: orange;",
+                "color: #660E6A;",
                 "",
-                "color: orange;",
+                "color: #660E6A;",
                 "",
-                "color: lightgreen;",
+                "color: #0000FF;",
                 "",
                 "",
                 "color: red;"

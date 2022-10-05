@@ -15,7 +15,7 @@ describe("PrettyLogs", () => {
                 { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a42"', type: "key", path: "/a42" },
                 { text: ":", type: "specialSymbols", path: "/a42" },
-                { text: "4", type: "value", path: "/a42" },
+                { text: "4", type: "number", path: "/a42" },
                 { text: "}", type: "specialSymbols", path: "/a42" }
             ]);
         });
@@ -25,11 +25,11 @@ describe("PrettyLogs", () => {
                 { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":", type: "specialSymbols", path: "/a" },
-                { text: '"123"', type: "value", path: "/a" },
+                { text: '"123"', type: "string", path: "/a" },
                 { text: ",", type: "specialSymbols", path: "/a" },
                 { text: '"b"', type: "key", path: "/b" },
                 { text: ":", type: "specialSymbols", path: "/b" },
-                { text: '"2"', type: "value", path: "/b" },
+                { text: '"2"', type: "string", path: "/b" },
                 { text: "}", type: "specialSymbols", path: "/b" }
             ]);
         });
@@ -40,7 +40,7 @@ describe("PrettyLogs", () => {
                     "1": [{ "e": 1 }, { "e": 3 }, { "a": 3 }],
                     "2": [{ "b": 1 }, { "b": 3 }, { "b": 3 }]
                 }, "t": 16343
-            }, { isDebug: true }), [
+            }), [
                 { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"d"', type: "key", path: "/d" },
                 { text: ":{", type: "specialSymbols", path: "/d" },
@@ -48,43 +48,43 @@ describe("PrettyLogs", () => {
                 { text: ":[{", type: "specialSymbols", path: "/d/1" },
                 { text: '"e"', type: "key", path: "/d/1/0/e" },
                 { text: ":", type: "specialSymbols", path: "/d/1/0/e" },
-                { text: "1", type: "value", path: "/d/1/0/e" },
+                { text: "1", type: "number", path: "/d/1/0/e" },
                 { text: "},{", type: "specialSymbols", path: "/d/1/0/e" },
                 { text: '"e"', type: "key", path: "/d/1/1/e" },
                 { text: ":", type: "specialSymbols", path: "/d/1/1/e" },
-                { text: "3", type: "value", path: "/d/1/1/e" },
+                { text: "3", type: "number", path: "/d/1/1/e" },
                 { text: "},{", type: "specialSymbols", path: "/d/1/1/e" },
                 { text: '"a"', type: "key", path: "/d/1/2/a" },
                 { text: ":", type: "specialSymbols", path: "/d/1/2/a" },
-                { text: "3", type: "value", path: "/d/1/2/a" },
+                { text: "3", type: "number", path: "/d/1/2/a" },
                 { text: "}],", type: "specialSymbols", path: "/d/1/2/a" },
                 { text: '"2"', type: "key", path: "/d/2" },
                 { text: ":[{", type: "specialSymbols", path: "/d/2" },
                 { text: '"b"', type: "key", path: "/d/2/0/b" },
                 { text: ":", type: "specialSymbols", path: "/d/2/0/b" },
-                { text: "1", type: "value", path: "/d/2/0/b" },
+                { text: "1", type: "number", path: "/d/2/0/b" },
                 { text: "},{", type: "specialSymbols", path: "/d/2/0/b" },
                 { text: '"b"', type: "key", path: "/d/2/1/b" },
                 { text: ":", type: "specialSymbols", path: "/d/2/1/b" },
-                { text: "3", type: "value", path: "/d/2/1/b" },
+                { text: "3", type: "number", path: "/d/2/1/b" },
                 { text: "},{", type: "specialSymbols", path: "/d/2/1/b" },
                 { text: '"b"', type: "key", path: "/d/2/2/b" },
                 { text: ":", type: "specialSymbols", path: "/d/2/2/b" },
-                { text: "3", type: "value", path: "/d/2/2/b" },
+                { text: "3", type: "number", path: "/d/2/2/b" },
                 { text: "}]},", type: "specialSymbols", path: "/d/2/2/b" },
                 { text: '"t"', type: "key", path: "/t" },
                 { text: ":", type: "specialSymbols", path: "/t" },
-                { text: "16343", type: "value", path: "/t" },
+                { text: "16343", type: "number", path: "/t" },
                 { text: "}", type: "specialSymbols", path: "/t" }
             ]);
         });
 
         it("should parse JSON object", () => {
-            assert.deepEqual(parseMessage({ "a": 1 }), [
+            assert.deepEqual(parseMessage({ "a": true }), [
                 { path: "root", text: "{", type: "specialSymbols" },
                 { path: "/a", text: '"a"', type: "key" },
                 { path: "/a", text: ":", type: "specialSymbols" },
-                { path: "/a", text: "1", type: "value" },
+                { path: "/a", text: "true", type: "boolean" },
                 { path: "/a", text: "}", type: "specialSymbols" }
             ]);
         });
@@ -149,7 +149,7 @@ describe("PrettyLogs", () => {
                 { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"e"', type: "key", path: "/e" },
                 { text: ":", type: "specialSymbols", path: "/e" },
-                { text: '"2"', type: "value", path: "/e" },
+                { text: '"2"', type: "string", path: "/e" },
                 { text: ",", type: "specialSymbols", path: "/e" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":{", type: "specialSymbols", path: "/a" },
@@ -157,7 +157,7 @@ describe("PrettyLogs", () => {
                 { text: ":{", type: "specialSymbols", path: "/a/c" },
                 { text: '"d"', type: "key", path: "/a/c/d" },
                 { text: ":", type: "specialSymbols", path: "/a/c/d" },
-                { text: "1", type: "value", path: "/a/c/d" },
+                { text: "1", type: "number", path: "/a/c/d" },
                 { text: "}}}", type: "specialSymbols", path: "/a/c/d" }
             ]);
         });
@@ -171,11 +171,11 @@ describe("PrettyLogs", () => {
                 { text: ":[{", type: "specialSymbols", path: "/a/c" },
                 { text: '"d"', path: "/a/c/0/d", type: "key" },
                 { text: ":", type: "specialSymbols", path: "/a/c/0/d" },
-                { text: "1", type: "value", path: "/a/c/0/d" },
+                { text: "1", type: "number", path: "/a/c/0/d" },
                 { text: "},{", type: "specialSymbols", path: "/a/c/0/d" },
                 { text: '"d"', type: "key", path: "/a/c/1/d" },
                 { text: ":", type: "specialSymbols", path: "/a/c/1/d" },
-                { text: "2", type: "value", path: "/a/c/1/d" },
+                { text: "2", type: "number", path: "/a/c/1/d" },
                 { text: "}]}}", type: "specialSymbols", path: "/a/c/1/d" }
             ]);
         });
@@ -238,7 +238,7 @@ describe("PrettyLogs", () => {
                 { text: "{", type: "specialSymbols", path: "root" },
                 { text: '"a"', type: "key", path: "/a" },
                 { text: ":", type: "specialSymbols", path: "/a" },
-                { text: "4", type: "value", path: "/a" },
+                { text: "4", type: "number", path: "/a" },
                 { text: "}", type: "specialSymbols", path: "/a" },
                 { type: "removed", path: "/b", text: '"2"' }
             ]);
@@ -268,7 +268,7 @@ describe("PrettyLogs", () => {
                 { text: ":[{", type: "specialSymbols", path: "/b" },
                 { text: '"a"', type: "key", path: "/b/0/a" },
                 { text: ":", type: "specialSymbols", path: "/b/0/a" },
-                { text: "1", type: "value", path: "/b/0/a" },
+                { text: "1", type: "number", path: "/b/0/a" },
                 { text: "}]}", type: "specialSymbols", path: "/b/0/a" },
                 { type: "removed", path: "/b/1", text: '{"a":2}' }
             ]);
@@ -291,7 +291,7 @@ describe("PrettyLogs", () => {
                 { text: '"c":1}},', path: "/a/b/c", type: "added" },
                 { text: '"d"', type: "key", path: "/d" },
                 { text: ":", type: "specialSymbols", path: "/d" },
-                { text: "2", type: "value", path: "/d" },
+                { text: "2", type: "number", path: "/d" },
                 { text: "}", type: "specialSymbols", path: "/d" }
             ]);
         });
@@ -344,7 +344,7 @@ describe("PrettyLogs", () => {
                 { "text": "{\n  ", "type": "specialSymbols", "path": "" },
                 { "text": "\"foo\"", "type": "key", "path": "/foo" },
                 { "text": ": ", "type": "specialSymbols", "path": "/foo" },
-                { "text": "1", "type": "value", "path": "/foo" },
+                { "text": "1", "type": "number", "path": "/foo" },
                 { "text": ",\n  ", "type": "specialSymbols", "path": "/foo" },
                 { "text": "\"bar\"", "path": "/bar", "type": "error" },
                 { "text": ": ", "path": "/bar", "type": "error" },
@@ -356,7 +356,7 @@ describe("PrettyLogs", () => {
                 { "path": "", "text": "{\n  ", "type": "specialSymbols" },
                 { "path": "/foo", "text": "\"foo\"", "type": "key" },
                 { "path": "/foo", "text": ": ", "type": "specialSymbols" },
-                { "path": "/foo", "text": "1", "type": "value" },
+                { "path": "/foo", "text": "1", "type": "number" },
                 { "path": "/foo", "text": ",\n  ", "type": "specialSymbols" },
                 { "path": "/bar", "text": "\"bar\": 4343", "type": "error" },
                 { "path": "/bar", "text": " // must be string\n", "type": "annotation" },
