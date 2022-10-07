@@ -151,7 +151,7 @@ function highlightSubMessage(
             acc.push(item);
             return acc;
         }
-        const parts = item.text.split(partMsgString).filter(part => part !== "");
+        const parts = item.text.split(partMsgString);
         const entriesCount = parts.length - 1;
         if (type === "changed" && entriesCount === 1 && path.startsWith(item.path)) {
             const [first, ...rest] = parts;
