@@ -3,7 +3,7 @@ type ValuesType = "number" | "string" | "boolean";
 export type FormattingType = "key" | "added" | "changed" | "removed" | "value" | "annotation" | "error" | "specialSymbols" | "unknown" | ValuesType;
 export type LogItem = {
     text: string;
-    type: FormattingType;
+    readonly type: FormattingType;
     /**
      * JSON path to the position of element inside the analyzed object
      */
@@ -13,5 +13,5 @@ export type LogItem = {
 export type ValueType = string | number | boolean | undefined | null;
 export type DataObjectValues = ValueType | DataObject | DataObject[] | ValueType[];
 export interface DataObject {
-    [key: string]: DataObjectValues;
+    readonly [key: string]: DataObjectValues;
 }

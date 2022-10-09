@@ -48,17 +48,22 @@ function getItemType(type: FormattingType, text: string): FormattingType {
  *                 { path: "/a", text: "}", type: "specialSymbols" }
  *             ]
  **/
-export function highlightPartsOfMessage<T extends DataObject>(message: T, options: Options): LogItem[] {
-    let result: LogItem[] = [{ text: serializeData(message, options), type: "unknown", path: "root" }];
-    result = highlightSubObjectKeysAndValues(message, result, "root", options);
+export function highlightPartsOfMessage<T extends DataObject>(message: T | string, options: Options): LogItem[] {
+    let result: LogItem[] = [{
+        text: typeof message === "string" ? message : serializeData(message, options),
+        type: "unknown",
+        path: "root",
+    }];
+    const messageAsObject = typeof message === "string" ? JSON.parse(message) : message;
+    result = highlightSubObjectKeysAndValues(messageAsObject, result, "root", options);
     result.forEach((item, index) => {
         if (item.path === "root" && index > 0) {
             item.path = result[index - 1]!.path;
         }
     });
     if (options.showDiffWithObject !== undefined) {
-        result = highlightSubObject(message, options.showDiffWithObject, result, "root", options);
-        result = searchForRemovedData(message, options.showDiffWithObject, result, "root", options);
+        result = highlightSubObject(messageAsObject, options.showDiffWithObject, result, "root", options);
+        result = searchForRemovedData(messageAsObject, options.showDiffWithObject, result, "root", options);
     }
     const res = mergeLogItems(result).map(item => ({ ...item, type: getItemType(item.type, item.text)}));
 

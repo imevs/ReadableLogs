@@ -32,13 +32,15 @@ function executeFormatter(data: typeof logs) {
 function onClick() {
     console.clear();
     const currentLoggableMessage =
-        removeHtmlEntities(document.querySelector("#demo_input_currentMessage")!.textContent ?? "");
+        removeHtmlEntities(document.querySelector<HTMLElement>("#demo_input_currentMessage")!.innerText ?? "");
     const prevMessage =
         removeHtmlEntities(document.querySelector("#demo_input_prevMessage")!.textContent ?? "");
+    const preserveFormatting = !!(document.querySelector("#preserveFormatting") as HTMLInputElement)?.checked ?? false;
+
     try {
         executeFormatter({
             prevObject: safeParse(prevMessage),
-            current: safeParse(currentLoggableMessage),
+            current: preserveFormatting ? currentLoggableMessage : safeParse(currentLoggableMessage),
         });
         document.querySelector("#error")!.innerHTML = "";
     } catch (ex) {
@@ -48,5 +50,5 @@ function onClick() {
 
 executeFormatter(logs);
 
-["#run", "#yaml", "#multiline"].map(selector =>
+["#run", "#yaml", "#multiline", "#preserveFormatting"].map(selector =>
     document.querySelector(selector)!.addEventListener("click", onClick));

@@ -16,7 +16,7 @@ export type ApiOptions = {
 type KeysOfUnion<T> = T extends T ? keyof T: never;
 type AllOptions = { [K in KeysOfUnion<ApiOptions>]?: undefined; };
 
-export function parseMessage(data: DataObject, options: ApiOptions = {}): LogItem[] {
+export function parseMessage(data: DataObject | string, options: ApiOptions = {}): LogItem[] {
     if ((options as AllOptions).yaml) {
         return convertJsonToYaml(data);
     }

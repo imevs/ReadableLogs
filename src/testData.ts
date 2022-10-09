@@ -1,6 +1,6 @@
 import { DataObject } from "./types";
 
-export const logs: { prevObject: DataObject; current: DataObject; } = {
+export const logs: { prevObject: DataObject; current: DataObject | string; } = {
     prevObject: {
         a: 1,
         b: "2",
