@@ -60,7 +60,15 @@ export function highlightPartsOfMessage<T extends DataObject>(message: T, option
         result = highlightSubObject(message, options.showDiffWithObject, result, "root", options);
         result = searchForRemovedData(message, options.showDiffWithObject, result, "root", options);
     }
-    return mergeLogItems(result).map(item => ({ ...item, type: getItemType(item.type, item.text)}));
+    const res = mergeLogItems(result).map(item => ({ ...item, type: getItemType(item.type, item.text)}));
+
+    if (options.isDebug) {
+        const outputText = res.filter(i => i.type !== "removed").map(r => r.text).join("");
+        if (JSON.stringify(message) !== outputText) {
+            console.error("Console output does not match the input", JSON.stringify(message), outputText);
+        }
+    }
+    return res;
 }
 
 function highlightSubObject<T extends DataObject>(
