@@ -8,6 +8,10 @@ type FormattingOptions = {
      */
     replace: boolean;
     /**
+     * enables debug mode to troubleshoot problems with logger
+     */
+    debug: boolean;
+    /**
      * format JSON as multiline for better readability (suits for small messages)
      */
     multiline: boolean;
@@ -57,6 +61,7 @@ function enhanceLogger(logFunction: typeof console.log, options: FormattingOptio
                     const result = annotateDataInJson(logPart as DataObject, annotations, {
                         showDiffWithObject: annotations.length ? undefined : oldMessages[id],
                         multiline: options.multiline,
+                        isDebug: options.debug,
                     });
                     const filteredResult = options.excludeDataPathsFromMessage.length
                         ? result.filter(part => options.excludeDataPathsFromMessage.indexOf(part.path) === -1)
@@ -77,6 +82,7 @@ const formattingOptions: FormattingOptions = {
     colorsMap: passedFormattingOptions?.colorsMap ?? undefined,
     maxMessageSize: passedFormattingOptions?.maxMessageSize ?? 1000,
     replace: passedFormattingOptions?.replace ?? false,
+    debug: passedFormattingOptions?.debug ?? false,
     multiline: passedFormattingOptions?.multiline ?? false,
     mode: passedFormattingOptions?.mode ?? "overrideConsole",
     getMessageType: passedFormattingOptions?.getMessageType ?? (logPart => Object.keys(logPart)[0]),
